@@ -37,7 +37,8 @@ GET /api/images/:id
 Full image-level detail: prediction, ground truth, confidence score and error tag.
 
 
-## What's mocked and implemented
+## Mocked and implemented
+- **Data Model**: considering Ultralytics API already provides dataset-level performance metrics and  per-image summary, a mocked data model is created that stores individual box coordinates, prediction confidence score, error-type classification and IoU values;
 
 ## Scope
 
