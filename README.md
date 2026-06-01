@@ -8,7 +8,6 @@ This prototype demonstrates the image-drilldown layer that sits underneath the e
 ## Architecture Overview
 - **Frontend**: Next.js + TypeScript;
 - **Backend**: Python serverless endpoints
-- **Database**: MongoDB
 
 ## Product and UX decisions
 
