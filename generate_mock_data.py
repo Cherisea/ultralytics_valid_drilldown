@@ -76,3 +76,18 @@ def random_bbox(small: bool = False) -> list[float]:
     cx = random.uniform(w / 2, 1 - w / 2)
     cy = random.uniform(h / 2, 1 - h / 2)
     return [cx, cy, w, h]
+
+def jitter_bbox(box: list[float], jitter: float = 0.06) -> list[float]:
+    """
+    Small Gaussian perturbation → high IoU (0.7-0.99)
+    Simulates a well-localised true positive detection.
+    """
+    cx, cy, w, h = box
+    cx = cx + random.gauss(0, w * jitter)
+    cy = cy + random.gauss(0, h * jitter)
+    w  = max(0.01, w * random.uniform(1 - jitter, 1 + jitter))
+    h  = max(0.01, h * random.uniform(1 - jitter, 1 + jitter))
+    cx = max(w / 2, min(1 - w / 2, cx))
+    cy = max(h / 2, min(1 - h / 2, cy))
+    return [cx, cy, w, h]
+ 
