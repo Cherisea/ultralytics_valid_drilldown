@@ -1,3 +1,6 @@
 # Virtual env
 Pipfile
 Pipfile.lock
+
+# Generated data files
+data/
