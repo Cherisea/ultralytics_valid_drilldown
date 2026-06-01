@@ -91,3 +91,16 @@ def jitter_bbox(box: list[float], jitter: float = 0.06) -> list[float]:
     cy = max(h / 2, min(1 - h / 2, cy))
     return [cx, cy, w, h]
  
+def displace_bbox(box: list[float], drift: float = 0.38) -> list[float]:
+    """
+    Larger uniform shift → IoU typically in 0.15-0.45 range.
+    Simulates a localisation error (detected but poorly framed).
+    """
+    cx, cy, w, h = box
+    cx = cx + random.uniform(-w * drift, w * drift)
+    cy = cy + random.uniform(-h * drift, h * drift)
+    w  = max(0.01, w * random.uniform(0.60, 1.40))
+    h  = max(0.01, h * random.uniform(0.60, 1.40))
+    cx = max(w / 2, min(1 - w / 2, cx))
+    cy = max(h / 2, min(1 - h / 2, cy))
+    return [cx, cy, w, h]
