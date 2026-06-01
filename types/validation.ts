@@ -59,3 +59,34 @@ export interface GroundTruth {
     // null for matched GTs; the failure mode for unmatched ones
     errorType: "false_negative" | "localization" | "classification" | null;
 }
+
+// ImageResult — full per-image validation result
+// ---------------------------------------------------------------------------
+export interface ImageResult {
+  id: string;
+  runId: string;
+  filename: string;
+  imageUrl: string;
+  width: number;    // pixels
+  height: number;   // pixels
+ 
+  // F1 score
+  score: number;
+ 
+  truePositives: number;
+  falsePositives: number;
+  falseNegatives: number;
+  dominantErrorType: ErrorType | null; // highest-count error on this image
+ 
+  classesPresent: string[];  // class names of GT objects present
+  tags: string[];            // e.g. "small_objects", "crowded"
+ 
+  predictions: Detection[];
+  groundTruths: GroundTruth[];
+}
+
+/**
+ * Lightweight image summary for list / gallery views.
+ * Strips predictions + groundTruths to keep payloads small.
+ */
+export type ImageListItem = Omit<ImageResult, "predictions" | "groundTruths">;
