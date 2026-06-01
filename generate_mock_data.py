@@ -66,7 +66,12 @@ from pathlib import Path
 from typing import Any
 
 def random_bbox(small: bool = False) -> list[float]:
-    """Generate a random normalised bounding box guaranteed to fit in [0, 1]."""
+    """Generate a random normalised bounding box guaranteed to fit in [0, 1].
+    
+    Args:
+        small: custom classification for a detected object. Helpful for pattern discovery
+                among failed cases;
+    """
     if small:
         w = random.uniform(0.02, 0.08)
         h = random.uniform(0.02, 0.08)
@@ -79,8 +84,8 @@ def random_bbox(small: bool = False) -> list[float]:
 
 def jitter_bbox(box: list[float], jitter: float = 0.06) -> list[float]:
     """
-    Small Gaussian perturbation → high IoU (0.7-0.99)
-    Simulates a well-localised true positive detection.
+        Small Gaussian perturbation → high IoU (0.7-0.99)
+        Simulates a well-localised true positive detection.
     """
     cx, cy, w, h = box
     cx = cx + random.gauss(0, w * jitter)
@@ -93,8 +98,8 @@ def jitter_bbox(box: list[float], jitter: float = 0.06) -> list[float]:
  
 def displace_bbox(box: list[float], drift: float = 0.38) -> list[float]:
     """
-    Larger uniform shift → IoU typically in 0.15-0.45 range.
-    Simulates a localisation error (detected but poorly framed).
+        Larger uniform shift → IoU typically in 0.15-0.45 range.
+        Simulates a localisation error (detected but poorly framed).
     """
     cx, cy, w, h = box
     cx = cx + random.uniform(-w * drift, w * drift)
@@ -104,3 +109,15 @@ def displace_bbox(box: list[float], drift: float = 0.38) -> list[float]:
     cx = max(w / 2, min(1 - w / 2, cx))
     cy = max(h / 2, min(1 - h / 2, cy))
     return [cx, cy, w, h]
+
+def compute_iou(b1: list[float], b2: list[float]) -> float:
+    """Compute IoU of two normalised [cx, cy, w, h] boxes."""
+    x1a, y1a = b1[0] - b1[2] / 2, b1[1] - b1[3] / 2
+    x2a, y2a = b1[0] + b1[2] / 2, b1[1] + b1[3] / 2
+    x1b, y1b = b2[0] - b2[2] / 2, b2[1] - b2[3] / 2
+    x2b, y2b = b2[0] + b2[2] / 2, b2[1] + b2[3] / 2
+    iw = max(0.0, min(x2a, x2b) - max(x1a, x1b))
+    ih = max(0.0, min(y2a, y2b) - max(y1a, y1b))
+    inter = iw * ih
+    union = b1[2] * b1[3] + b2[2] * b2[3] - inter
+    return inter / union if union > 0 else 0.0
