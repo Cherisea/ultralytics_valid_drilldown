@@ -121,3 +121,6 @@ def compute_iou(b1: list[float], b2: list[float]) -> float:
     inter = iw * ih
     union = b1[2] * b1[3] + b2[2] * b2[3] - inter
     return inter / union if union > 0 else 0.0
+
+def bbox_to_dict(box: list[float]) -> dict[str, float]:
+    return {"x": box[0], "y": box[1], "w": box[2], "h": box[3]}
