@@ -497,3 +497,6 @@ def main() -> None:
         bar = "█" * int(m["map50"] * 20)
         support_label = f"n={m['support']}"
         print(f"  {m['className']:>14s}  {m['map50']:.3f}  {bar:<14s}  {support_label}")
+
+if __name__ == "__main__":
+    main()
