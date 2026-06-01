@@ -434,3 +434,66 @@ def compute_run_metrics(
     }
  
     return agg, per_class, confusion
+
+def main() -> None:
+    out_dir = Path("data/")
+    out_dir.mkdir(parents=True, exist_ok=True)
+ 
+    run_id = "run-" + str(uuid.uuid4())[:8]
+    print(f"Generating {N_IMAGES} images for run {run_id} …")
+ 
+    images = [generate_image(run_id, i) for i in range(N_IMAGES)]
+ 
+    agg, per_class, confusion = compute_run_metrics(images)
+ 
+    run: dict[str, Any] = {
+        "id":               run_id,
+        "modelId":          "model-yolo26n-coco-finetune",
+        "modelName":        "yolo26n (fine-tuned)",
+        "datasetName":      "coco8-custom-val",
+        "split":            "val",
+        "createdAt":        datetime.now(timezone.utc).isoformat(),
+        "status":           "complete",
+        "imageCount":       N_IMAGES,
+        "classNames":       [c["name"] for c in CLASSES],
+        "aggregateMetrics": agg,
+        "perClassMetrics":  per_class,
+        "confusionMatrix":  confusion,
+    }
+ 
+    # ── Write fixtures ─────────────────────────────────────────────────────────
+ 
+    # 1. Full run summary
+    (out_dir / "run_001.json").write_text(json.dumps(run, indent=2))
+ 
+    # 2. Full image results (includes predictions + groundTruths)
+    (out_dir / "images.json").write_text(json.dumps(images, indent=2))
+ 
+    # 3. Lightweight index — strip prediction/GT arrays for list views
+    index_keys = [
+        "id", "runId", "filename", "imageUrl", "width", "height",
+        "score", "truePositives", "falsePositives", "falseNegatives",
+        "dominantErrorType", "classesPresent", "tags",
+    ]
+    images_index = [{k: img[k] for k in index_keys} for img in images]
+    (out_dir / "images_index.json").write_text(json.dumps(images_index, indent=2))
+ 
+    # ── Summary printout ───────────────────────────────────────────────────────
+    print()
+    print("Output files:")
+    print(f"  ✓ {out_dir}/run_001.json")
+    print(f"  ✓ {out_dir}/images.json         ({len(images)} images, full detail)")
+    print(f"  ✓ {out_dir}/images_index.json   ({len(images)} images, list view)")
+    print()
+    print("Aggregate metrics:")
+    print(f"  mAP50     {agg['map50']:.3f}")
+    print(f"  mAP50-95  {agg['map50_95']:.3f}")
+    print(f"  Precision {agg['precision']:.3f}")
+    print(f"  Recall    {agg['recall']:.3f}")
+    print(f"  F1        {agg['f1']:.3f}")
+    print()
+    print("Per-class mAP50 (sorted ascending — worst first):")
+    for m in sorted(per_class, key=lambda x: x["map50"]):
+        bar = "█" * int(m["map50"] * 20)
+        support_label = f"n={m['support']}"
+        print(f"  {m['className']:>14s}  {m['map50']:.3f}  {bar:<14s}  {support_label}")
