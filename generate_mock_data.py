@@ -349,3 +349,88 @@ def generate_image(run_id: str, idx: int) -> dict[str, Any]:
         "predictions":  sorted(predictions,   key=lambda p: -p["confidence"]),
         "groundTruths": ground_truths,
     }
+
+def compute_run_metrics(
+    images: list[dict],
+) -> tuple[dict, list[dict], list[list[int]]]:
+    """
+    Derive per-class metrics and confusion matrix from generated images.
+ 
+    Per-class TP/FP/FN are counted from the prediction and GT arrays.
+    mAP50 is approximated via the harmonic-mean of P and R (F-score form
+    of AP); mAP50-95 is scaled down by an empirical factor matching typical
+    YOLO model behaviour (~0.63× mAP50).
+    """
+    class_tp:      dict[int, int] = defaultdict(int)
+    class_fp:      dict[int, int] = defaultdict(int)
+    class_fn:      dict[int, int] = defaultdict(int)
+    class_support: dict[int, int] = defaultdict(int)
+ 
+    # confusion[true_cls][pred_cls] → count
+    confusion = [[0] * N_CLASSES for _ in range(N_CLASSES)]
+ 
+    for img in images:
+        for g in img["groundTruths"]:
+            cid = g["classId"]
+            class_support[cid] += 1
+            if g["matched"]:
+                class_tp[cid] += 1
+                confusion[cid][cid] += 1   # TP on the diagonal
+            else:
+                class_fn[cid] += 1
+ 
+        for p in img["predictions"]:
+            if p["errorType"] == "classification" and p.get("groundTruthId"):
+                # Classification error: find the GT to log the off-diagonal cell
+                gt = next(
+                    (g for g in img["groundTruths"] if g["id"] == p["groundTruthId"]),
+                    None,
+                )
+                if gt and gt["classId"] != p["classId"]:
+                    confusion[gt["classId"]][p["classId"]] += 1
+                class_fp[p["classId"]] += 1
+ 
+            elif not p["matched"] and p["errorType"] in ("false_positive", "localization"):
+                class_fp[p["classId"]] += 1
+ 
+    per_class: list[dict] = []
+    for cls in CLASSES:
+        cid = cls["id"]
+        tp  = class_tp[cid]
+        fp  = class_fp[cid]
+        fn  = class_fn[cid]
+        sup = class_support[cid]
+ 
+        prec = round(tp / (tp + fp), 4) if (tp + fp) > 0 else 0.0
+        rec  = round(tp / (tp + fn), 4) if (tp + fn) > 0 else 0.0
+        f1   = round(2 * prec * rec / (prec + rec), 4) if (prec + rec) > 0 else 0.0
+ 
+        # mAP50 approximation: harmonic mean of P and R (a decent single-threshold AP proxy)
+        map50    = round(2 * prec * rec / (prec + rec), 4) if (prec + rec) > 0 else 0.0
+        map50_95 = round(map50 * random.uniform(0.58, 0.68), 4)
+ 
+        per_class.append({
+            "classId":       cid,
+            "className":     cls["name"],
+            "map50":         map50,
+            "map50_95":      map50_95,
+            "precision":     prec,
+            "recall":        rec,
+            "f1":            f1,
+            "support":       sup,
+            "truePositives": tp,
+            "falsePositives": fp,
+            "falseNegatives": fn,
+        })
+ 
+    # Macro average over classes that actually appear in the dataset
+    active = [m for m in per_class if m["support"] > 0]
+    agg = {
+        "map50":     round(sum(m["map50"]     for m in active) / len(active), 4) if active else 0.0,
+        "map50_95":  round(sum(m["map50_95"]  for m in active) / len(active), 4) if active else 0.0,
+        "precision": round(sum(m["precision"] for m in active) / len(active), 4) if active else 0.0,
+        "recall":    round(sum(m["recall"]    for m in active) / len(active), 4) if active else 0.0,
+        "f1":        round(sum(m["f1"]        for m in active) / len(active), 4) if active else 0.0,
+    }
+ 
+    return agg, per_class, confusion
