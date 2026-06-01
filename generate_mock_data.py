@@ -3,8 +3,6 @@ scripts/generate_mock_data.py
  
 Mock data generator for the Ultralytics Platform validation prototype.
  
-─── What the real production pipeline looks like ──────────────────────────────
- 
 The Ultralytics package covers TWO of the three data layers we need:
  
   Layer 1 — Aggregate run metrics (fully covered by model.val())
@@ -58,3 +56,23 @@ Outputs (created automatically):
     data/fixtures/images.json         Full ImageResult array (predictions + GTs)
     data/fixtures/images_index.json   Lightweight ImageListItem array
 """
+
+import json
+import random
+import uuid
+from collections import defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+def random_bbox(small: bool = False) -> list[float]:
+    """Generate a random normalised bounding box guaranteed to fit in [0, 1]."""
+    if small:
+        w = random.uniform(0.02, 0.08)
+        h = random.uniform(0.02, 0.08)
+    else:
+        w = random.uniform(0.07, 0.42)
+        h = random.uniform(0.07, 0.42)
+    cx = random.uniform(w / 2, 1 - w / 2)
+    cy = random.uniform(h / 2, 1 - h / 2)
+    return [cx, cy, w, h]
