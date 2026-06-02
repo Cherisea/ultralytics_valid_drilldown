@@ -1,5 +1,6 @@
 /**
- * Get a summary of metrics for a validation run.
+ * Get a summary of metrics for a validation run. Not for page-rendering 
+ * in a browser.
  * 
  * GET /api/runs/:runId/summary
  * 
