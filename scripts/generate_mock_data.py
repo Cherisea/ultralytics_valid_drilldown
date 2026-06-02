@@ -357,7 +357,7 @@ def generate_image(run_id: str, idx: int, record: dict, public_img_dir: Path) ->
  
     # ── Tags ──────────────────────────────────────────────────────────────────
     tags: list[str] = []
-    gt_classes = {CLASS_BY_COCO_ID[o["coco_id"]] for o in record["gt_objects"]}
+    gt_classes = [CLASS_BY_COCO_ID[o["coco_id"]] for o in record["gt_objects"]]
     if any(c["small"] for c in gt_classes):
         tags.append("small_objects")
     if len(ground_truths) >= 6:
