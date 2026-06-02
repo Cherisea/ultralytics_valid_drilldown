@@ -34,9 +34,9 @@ export default async function OverviewPage({
         <div>
           <h1
             style={{
-              fontSize: "1.35rem",
-              fontWeight: 800,
-              letterSpacing: "-0.02em",
+              fontSize: "2rem",
+              fontWeight: 700,
+              letterSpacing: "0",
               color: "var(--t1)",
             }}
           >
