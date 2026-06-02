@@ -20,3 +20,36 @@
  * a second request.
  * 
  */
+
+import { NextRequest, NextResponse } from "next/server";
+import { getRun, getPatterns } from "@/lib/store";
+import type { PatternGroupBy, PatternsResponse } from "@/types/validation";
+ 
+const VALID_GROUP_BY = new Set<PatternGroupBy>([
+  "class",
+  "errorType",
+  "confidence",
+]);
+ 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ runId: string }> }
+) {
+  const { runId } = await params;
+ 
+  const run = getRun(runId);
+  if (!run) {
+    return NextResponse.json({ error: "Run not found" }, { status: 404 });
+  }
+ 
+  const rawGroupBy = request.nextUrl.searchParams.get("groupBy") ?? "errorType";
+  if (!VALID_GROUP_BY.has(rawGroupBy as PatternGroupBy)) {
+    return NextResponse.json(
+      { error: `Invalid groupBy: "${rawGroupBy}". Use "class", "errorType", or "confidence"` },
+      { status: 400 }
+    );
+  }
+ 
+  const result: PatternsResponse = getPatterns(runId, rawGroupBy as PatternGroupBy);
+  return NextResponse.json(result);
+}
