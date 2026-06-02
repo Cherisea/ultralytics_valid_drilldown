@@ -16,6 +16,7 @@ import fs from "fs";
 import type {
     ValidationRun, ImageListItem,
     ImageResult, ImageFilters,
+    SortOrder,
 } from "@/types/validation";
 
 
@@ -107,7 +108,27 @@ function applyFilters(entries: IndexEntry[], filters: ImageFilters): IndexEntry[
    
       return true;
     });
-  }
+}
+
+function applySort(entries: IndexEntry[], sort: SortOrder): IndexEntry[] {
+    const sorted = [...entries]; // never mutate the cached array
+    switch (sort) {
+      case "worst":
+        // Ascending score: worst-performing images first.
+        return sorted.sort((a, b) => a.score - b.score);
+      case "best":
+        // Descending score: best-performing images first.
+        return sorted.sort((a, b) => b.score - a.score);
+      case "most_errors":
+        // Total unmatched count (FP + FN) descending.
+        // This surfaces images with the most absolute failures regardless of
+        // their score, which is useful when the dataset is unbalanced.
+        return sorted.sort(
+          (a, b) =>
+            b.falsePositives + b.falseNegatives - (a.falsePositives + a.falseNegatives)
+        );
+    }
+}
 
 /**
  * Returns the ValidationRun for the given runId, or null if not found.
