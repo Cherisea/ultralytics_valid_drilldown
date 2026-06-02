@@ -54,3 +54,66 @@ Full image-level detail: prediction, ground truth, confidence score and error ta
 - [ ] Bounding box overlay between prediction and ground truth;
 - [ ] Pattern-discovery grouping and clickable confusion matrix and filter/sort feature;
 - [ ] Polish README and create a short GIF demo;
+
+## File Structure
+validation-prototype/
+├── README.md
+├── package.json
+├── tsconfig.json
+├── next.config.js
+├── tailwind.config.ts
+│
+├── app/
+│   ├── layout.tsx
+│   ├── page.tsx                       # redirect → /runs/run_001
+│   ├── globals.css
+│   │
+│   ├── runs/[runId]/
+│   │   ├── page.tsx                   # SCREEN 1  overview
+│   │   ├── patterns/page.tsx          #           pattern discovery
+│   │   └── images/
+│   │       ├── page.tsx               # SCREEN 2  filtered gallery
+│   │       └── [imageId]/page.tsx     # SCREEN 3  detail + overlays
+│   │
+│   └── api/                           # TS route handlers (the "backend")
+│       ├── runs/[runId]/
+│       │   ├── summary/route.ts       # GET run summary
+│       │   ├── images/route.ts        # GET filtered image list
+│       │   └── patterns/route.ts      # GET pattern groups
+│       └── images/[imageId]/route.ts  # GET image detail
+│
+├── components/
+│   ├── overview/
+│   │   ├── MetricsSummary.tsx
+│   │   ├── ConfusionMatrix.tsx        # cells deep-link into filtered list
+│   │   └── PerClassTable.tsx
+│   ├── gallery/
+│   │   ├── ImageGrid.tsx
+│   │   ├── ImageCard.tsx
+│   │   └── FilterBar.tsx
+│   ├── detail/
+│   │   ├── BoxOverlay.tsx             # SVG box renderer — the showpiece
+│   │   ├── LayerToggle.tsx
+│   │   └── DetailSidebar.tsx
+│   ├── patterns/GroupCard.tsx
+│   └── ui/                            # Badge, Card, Spinner
+│
+├── lib/
+│   ├── store.ts                       # load fixtures + filter/sort/group LOGIC
+│   ├── api.ts                         # typed client fetch wrappers
+│   ├── filters.ts                     # URL searchParams ↔ ImageFilters
+│   └── colors.ts                      # errorType → color
+│
+├── types/
+│   └── validation.ts                  # ← already built (the contract)
+│
+├── scripts/
+│   └── generate_mock_data.py          # ← already built
+│
+├── backend/
+│   └── models.py                      # ← reference only; see README
+│
+└── data/fixtures/                     # ← already built
+    ├── run_001.json
+    ├── images.json
+    └── images_index.json
