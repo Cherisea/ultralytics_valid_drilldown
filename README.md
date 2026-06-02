@@ -10,6 +10,11 @@ This prototype demonstrates the image-drilldown layer that sits underneath the e
 - **Backend**: Python serverless endpoints
 
 ## Product and UX decisions
+### Frontend
+
+### Backend
+- The backend data models are kept for reference only to keep this project frontend focused. They can be readily implemented to be integrated into production backend system.
+
 
 ## Assumptions
 - Per-image evaluation results;
