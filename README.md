@@ -6,7 +6,7 @@ This prototype demonstrates the image-drilldown layer that sits underneath the e
 ## How to run this project
 
 ## Dataset
-This demo leverages COCO128 dataset from Ultralytics. We use 11 classes amomg all 80 to keep confusion matrix readable. Images that contain none of these classes are skipped.
+This demo leverages a subset of COCO128 dataset from Ultralytics. A total of 11 classes amomg all 80 are used to keep confusion matrix readable. Images that contain none of these classes are skipped.
 
 ## Architecture Overview
 - **Frontend**: Next.js + TypeScript;
