@@ -61,7 +61,7 @@ export default async function ImageDetailPage({
         </div>
 
         {/* Right column: sidebar */}
-        <div className="detail-sidebar">
+        <div className="detail-sidebar" style={{ marginTop: "2.5rem"}}>
           {/* Image summary */}
           <div className="card sidebar-section">
             <div className="sidebar-label">Image</div>
