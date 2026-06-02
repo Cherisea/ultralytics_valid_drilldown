@@ -90,3 +90,109 @@ export interface ImageResult {
  * Strips predictions + groundTruths to keep payloads small.
  */
 export type ImageListItem = Omit<ImageResult, "predictions" | "groundTruths">;
+
+// ---------------------------------------------------------------------------
+// Per-class metrics — one row per COCO class in the validation set
+// ---------------------------------------------------------------------------
+export interface ClassMetrics {
+  classId: number;
+  className: string;
+  map50: number;      // Average Precision at IoU=0.50
+  map50_95: number;   // Average Precision averaged over IoU=0.50:0.05:0.95
+  precision: number;
+  recall: number;
+  f1: number;
+  truePositives: number;
+  falsePositives: number;
+  falseNegatives: number;
+}
+
+// ---------------------------------------------------------------------------
+// Aggregate metrics — dataset-level summary across all classes
+// ---------------------------------------------------------------------------
+export interface AggregateMetrics {
+  map50: number;
+  map50_95: number;
+  precision: number;
+  recall: number;
+  f1: number;
+}
+
+// ---------------------------------------------------------------------------
+// ValidationRun — top-level object representing one model.val() execution
+// ---------------------------------------------------------------------------
+export type RunStatus = "complete" | "running" | "failed";
+export type DataSplit = "val" | "test";
+ 
+export interface ValidationRun {
+  id: string;
+  modelId: string;
+  modelName: string;
+  datasetName: string;
+  split: DataSplit;
+  createdAt: string;    // ISO 8601
+  status: RunStatus;
+  imageCount: number;
+ 
+  /**
+   * Ordered list of class names; index == classId.
+   * confusionMatrix[i][j] = count of GT class i predicted as class j.
+   */
+  classNames: string[];
+  aggregateMetrics: AggregateMetrics;
+  perClassMetrics: ClassMetrics[];
+  confusionMatrix: number[][];
+}
+
+// ---------------------------------------------------------------------------
+// API response envelopes
+// ---------------------------------------------------------------------------
+ 
+/** GET /api/runs/:id/summary */
+export interface RunSummaryResponse {
+  run: ValidationRun;
+}
+ 
+/** GET /api/runs/:id/images?class=&errorType=&confMin=&confMax=&sort=&page= */
+export interface ImageListResponse {
+  items: ImageListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+ 
+/** GET /api/images/:id */
+export interface ImageDetailResponse {
+  image: ImageResult;
+}
+ 
+/** GET /api/runs/:id/patterns?groupBy=class|errorType|confidence */
+export type PatternGroupBy = "class" | "errorType" | "confidence";
+
+export interface PatternGroup {
+  label: string;                                  // e.g. "bird", "false_positive", "low (0–0.4)"
+  count: number;                                  // images in this group
+  avgScore: number;                               // mean score across the group
+  errorBreakdown: Partial<Record<ErrorType, number>>;
+  representativeImageIds: string[];               // top 3 worst images in the group
+}
+
+export interface PatternsResponse {
+  groupBy: PatternGroupBy;
+  groups: PatternGroup[];  // sorted by count desc
+}
+
+// ---------------------------------------------------------------------------
+// Filter / sort parameters (used client-side and as API query params)
+// ---------------------------------------------------------------------------
+export type SortOrder = "worst" | "best" | "most_errors";
+ 
+export interface ImageFilters {
+  class?: string;
+  errorType?: ErrorType;
+  confMin?: number;
+  confMax?: number;
+  sort: SortOrder;
+  page: number;
+  pageSize: number;
+}
