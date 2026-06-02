@@ -77,15 +77,9 @@ random.seed(SEED)
 N_IMAGES = 60
 IOU_THRESHOLD = 0.50  # COCO standard: IoU ≥ 0.5 → true positive
 
-# ── COCO128 class subset ───────────────────────────────────────────────────────
-# We restrict to these 11 classes to keep the confusion matrix readable and
-# to tell a clear demo story. Images that contain none of these classes are
-# skipped. The full COCO class list has 80 classes.
-#
-# COCO class IDs (0-indexed) for our subset:
-COCO_CLASS_IDS = {0, 1, 2, 3, 5, 7, 9, 11, 16, 17, 14}
 # 0=person, 1=bicycle, 2=car, 3=motorcycle, 5=bus, 7=truck,
 # 9=traffic light, 11=stop sign, 16=dog, 17=cat, 14=bird
+COCO_CLASS_IDS = {0, 1, 2, 3, 5, 7, 9, 11, 16, 17, 14}
  
 # Weighted image-size pool (most images are standard 640×480)
 IMAGE_SIZES = [
@@ -93,26 +87,26 @@ IMAGE_SIZES = [
     (1280, 720), (640, 640), (800, 600),
 ]
 
+# Map from COCO ID → our internal class definition
 # base_recall     – P(model detects this GT instance at all)
 # base_precision  – P(detected instance is correctly classified AND well-localised)
 # confuses_with   – class IDs the model frequently predicts instead (wrong class)
-# small           – instances tend to appear small; use small bounding-box distribution
 CLASSES: list[dict] = [
-    {"id": 0,  "name": "person",        "base_recall": 0.79, "base_precision": 0.82, "confuses_with": [],     "small": False},
-    {"id": 1,  "name": "bicycle",       "base_recall": 0.68, "base_precision": 0.71, "confuses_with": [3],    "small": False},
-    {"id": 2,  "name": "car",           "base_recall": 0.83, "base_precision": 0.85, "confuses_with": [4, 5], "small": False},
-    {"id": 3,  "name": "motorcycle",    "base_recall": 0.70, "base_precision": 0.74, "confuses_with": [1],    "small": False},
-    {"id": 4,  "name": "bus",           "base_recall": 0.76, "base_precision": 0.79, "confuses_with": [2],    "small": False},
-    {"id": 5,  "name": "truck",         "base_recall": 0.72, "base_precision": 0.77, "confuses_with": [2],    "small": False},
-    {"id": 6,  "name": "traffic light", "base_recall": 0.55, "base_precision": 0.62, "confuses_with": [],     "small": True},
-    {"id": 7,  "name": "stop sign",     "base_recall": 0.61, "base_precision": 0.68, "confuses_with": [],     "small": False},
-    {"id": 8,  "name": "dog",           "base_recall": 0.76, "base_precision": 0.80, "confuses_with": [9],    "small": False},
-    {"id": 9,  "name": "cat",           "base_recall": 0.73, "base_precision": 0.78, "confuses_with": [8],    "small": False},
-    {"id": 10, "name": "bird",          "base_recall": 0.39, "base_precision": 0.48, "confuses_with": [],     "small": True},
+    {"id": 0,  "cocoId": 0,  "name": "person",        "base_recall": 0.79, "base_precision": 0.82, "confuses_with": [],      "small": False},
+    {"id": 1,  "cocoId": 1,  "name": "bicycle",       "base_recall": 0.68, "base_precision": 0.71, "confuses_with": [3],     "small": False},
+    {"id": 2,  "cocoId": 2,  "name": "car",           "base_recall": 0.83, "base_precision": 0.85, "confuses_with": [4, 5],  "small": False},
+    {"id": 3,  "cocoId": 3,  "name": "motorcycle",    "base_recall": 0.70, "base_precision": 0.74, "confuses_with": [1],     "small": False},
+    {"id": 4,  "cocoId": 5,  "name": "bus",           "base_recall": 0.76, "base_precision": 0.79, "confuses_with": [2],     "small": False},
+    {"id": 5,  "cocoId": 7,  "name": "truck",         "base_recall": 0.72, "base_precision": 0.77, "confuses_with": [2],     "small": False},
+    {"id": 6,  "cocoId": 9,  "name": "traffic light", "base_recall": 0.55, "base_precision": 0.62, "confuses_with": [],      "small": True},
+    {"id": 7,  "cocoId": 11, "name": "stop sign",     "base_recall": 0.61, "base_precision": 0.68, "confuses_with": [],      "small": False},
+    {"id": 8,  "cocoId": 16, "name": "dog",           "base_recall": 0.76, "base_precision": 0.80, "confuses_with": [9],     "small": False},
+    {"id": 9,  "cocoId": 17, "name": "cat",           "base_recall": 0.73, "base_precision": 0.78, "confuses_with": [8],     "small": False},
+    {"id": 10, "cocoId": 14, "name": "bird",          "base_recall": 0.39, "base_precision": 0.48, "confuses_with": [],      "small": True},
 ]
- 
 N_CLASSES = len(CLASSES)
-CLASS_BY_ID: dict[int, dict] = {c["id"]: c for c in CLASSES}
+CLASS_BY_ID       = {c["id"]: c for c in CLASSES}
+CLASS_BY_COCO_ID  = {c["cocoId"]: c for c in CLASSES}
 
 def random_bbox(small: bool = False) -> list[float]:
     """Generate a random normalised bounding box guaranteed to fit in [0, 1].
