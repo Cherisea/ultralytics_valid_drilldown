@@ -88,7 +88,6 @@ validation-prototype/
 │   │   ├── ConfusionMatrix.tsx        # cells deep-link into filtered list
 │   │   └── PerClassTable.tsx
 │   ├── gallery/
-│   │   ├── ImageGrid.tsx
 │   │   ├── ImageCard.tsx
 │   │   └── FilterBar.tsx
 │   ├── detail/
