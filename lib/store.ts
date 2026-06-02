@@ -17,7 +17,8 @@ import type {
     ValidationRun, ImageListItem,
     ImageResult, ImageFilters,
     SortOrder, PatternGroup,
-    ErrorType,
+    ErrorType, ImageListResponse,
+    PatternGroupBy, PatternsResponse
 } from "@/types/validation";
 
 
@@ -224,6 +225,10 @@ function groupByConfidence(entries: IndexEntry[]): PatternGroup[] {
 }
    
 
+// ---------------------------------------------------------------------------
+// Public API — these are the only functions route handlers call
+// ---------------------------------------------------------------------------
+
 /**
  * Returns the ValidationRun for the given runId, or null if not found.
  * The prototype has one fixture run; production would query MongoDB by ID.
@@ -232,4 +237,70 @@ export function getRun(runId: string): ValidationRun | null {
     load();
     if (_run!.id !== runId) return null;
     return _run;
-  }
+}
+
+/**
+ * Returns the full ImageResult (predictions + ground truths) for a single
+ * image, or null if the imageId is not found.
+ */
+export function getImageDetail(imageId: string): ImageResult | null {
+    load();
+    return _detailById.get(imageId) ?? null;
+}
+
+/**
+ * Applies filters, sort, and pagination to the image index for a run.
+ * Returns a page of ImageListItem records (no predictions/groundTruths).
+ */
+export function queryImages(
+    runId: string,
+    filters: ImageFilters
+  ): ImageListResponse {
+    load();
+   
+    // Scope to this run (all images in the fixture belong to one run,
+    // but the filter makes the contract explicit for a multi-run future).
+    const runEntries = _entries.filter((e) => e.runId === runId);
+   
+    const filtered = applyFilters(runEntries, filters);
+    const sorted = applySort(filtered, filters.sort);
+   
+    const total = sorted.length;
+    const start = (filters.page - 1) * filters.pageSize;
+    const page = sorted.slice(start, start + filters.pageSize);
+   
+    return {
+      items: page.map(toListItem),
+      total,
+      page: filters.page,
+      pageSize: filters.pageSize,
+    };
+}
+
+/**
+ * Groups images by the requested dimension and returns pattern-discovery
+ * groups sorted by image count (most common failure cluster first).
+ */
+export function getPatterns(
+    runId: string,
+    groupBy: PatternGroupBy
+  ): PatternsResponse {
+    load();
+   
+    const runEntries = _entries.filter((e) => e.runId === runId);
+   
+    let groups: PatternGroup[];
+    switch (groupBy) {
+      case "class":
+        groups = groupByClass(runEntries);
+        break;
+      case "errorType":
+        groups = groupByErrorType(runEntries);
+        break;
+      case "confidence":
+        groups = groupByConfidence(runEntries);
+        break;
+    }
+   
+    return { groupBy, groups };
+}
