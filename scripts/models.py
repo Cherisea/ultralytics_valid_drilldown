@@ -1,16 +1,16 @@
 """
-Pydantic v2 models for the validation prototype API.
-Mirrors types/validation.ts exactly — field names use camelCase throughout
-so JSON serialisation requires no translation layer.
+This script is a REFERENCE file that may be implemented later when building a real backend!
 
-In the mock phase these models validate the static JSON fixtures.
-In production they would validate MongoDB documents populated by the
-Ultralytics Python package's model.val() output; the API contract is
-identical either way.
+Pydantic v2 models for the validation prototype API. It Mirrors types/validation.ts exactly — 
+field names use camelCase throughout so that JSON serialisation requires no translation layer.
+
+In the mock phase these models validate the static JSON fixtures. In production they would validate 
+MongoDB documents populated by the Ultralytics Python package's model.val() output; the API contract 
+is identical either way.
 
 Production path:
     from ultralytics import YOLO
-    
+
     model = YOLO("best.pt")
     results = model.val(data="dataset.yaml")
     # → results.maps, results.box.p, results.box.r, results.confusion_matrix
