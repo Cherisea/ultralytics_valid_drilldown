@@ -15,7 +15,7 @@ import path from "path";
 import fs from "fs";
 import type {
     ValidationRun, ImageListItem,
-    ImageResult
+    ImageResult, ImageFilters,
 } from "@/types/validation";
 
 
@@ -60,8 +60,6 @@ function load(): void {
    
     _entries = images.map((img): IndexEntry => {
       // Average prediction confidence for this image.
-      // Images with no predictions (all GT objects missed) get avgConf = 0,
-      // which correctly places them in the "low confidence" bucket.
       const confs = img.predictions.map((p) => p.confidence);
       const avgConf =
         confs.length > 0
@@ -76,10 +74,40 @@ function load(): void {
     _entryById = new Map(_entries.map((e) => [e.id, e]));
 }
 
+// ---------------------------------------------------------------------------
+// Private helpers
+// ---------------------------------------------------------------------------
 /** Remove the internal _avgConf field before returning to a caller. */
 function toListItem({ _avgConf, ...rest }: IndexEntry): ImageListItem {
     return rest;
 }
+
+function applyFilters(entries: IndexEntry[], filters: ImageFilters): IndexEntry[] {
+    return entries.filter((item) => {
+      // Class filter: at least one GT object in the image belongs to this class.
+      if (filters.class !== undefined) {
+        if (!item.classesPresent.includes(filters.class)) return false;
+      }
+   
+      // Error-type filter: the image's most common failure mode must match.
+      // Note: this uses dominantErrorType (the plurality error on the image).
+      // A future version could filter on *presence* of any matching error,
+      // which would require loading the full predictions array.
+      if (filters.errorType !== undefined) {
+        if (item.dominantErrorType !== filters.errorType) return false;
+      }
+   
+      // Confidence filters operate on the image's average prediction confidence.
+      if (filters.confMin !== undefined && item._avgConf < filters.confMin) {
+        return false;
+      }
+      if (filters.confMax !== undefined && item._avgConf > filters.confMax) {
+        return false;
+      }
+   
+      return true;
+    });
+  }
 
 /**
  * Returns the ValidationRun for the given runId, or null if not found.
