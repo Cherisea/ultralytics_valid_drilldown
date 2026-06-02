@@ -1,4 +1,4 @@
 /** 
- * Get a summary of metrics for a validation run.
+ * Get a detailed view of metrics on an image.
  * 
 */
