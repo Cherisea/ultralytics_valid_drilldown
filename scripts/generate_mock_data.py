@@ -61,9 +61,9 @@ import json
 import random
 import uuid
 import yaml
+from PIL import Image
 
 from ultralytics.utils.downloads import download
-from pathlib import Path as P
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -76,6 +76,16 @@ random.seed(SEED)
 # ── Config ─────────────────────────────────────────────────────────────────────
 N_IMAGES = 60
 IOU_THRESHOLD = 0.50  # COCO standard: IoU ≥ 0.5 → true positive
+
+# ── COCO128 class subset ───────────────────────────────────────────────────────
+# We restrict to these 11 classes to keep the confusion matrix readable and
+# to tell a clear demo story. Images that contain none of these classes are
+# skipped. The full COCO class list has 80 classes.
+#
+# COCO class IDs (0-indexed) for our subset:
+COCO_CLASS_IDS = {0, 1, 2, 3, 5, 7, 9, 11, 16, 17, 14}
+# 0=person, 1=bicycle, 2=car, 3=motorcycle, 5=bus, 7=truck,
+# 9=traffic light, 11=stop sign, 16=dog, 17=cat, 14=bird
  
 # Weighted image-size pool (most images are standard 640×480)
 IMAGE_SIZES = [
@@ -171,7 +181,7 @@ def download_coco128() -> Path:
     Download COCO128 via Ultralytics and return the dataset root path.
     COCO128 is ~6MB and contains 128 real images from COCO train 2017.
     """
-    datasets_root = Path.home() / "datasets"
+    datasets_root = Path.home() / "dataset"
     coco128_yaml  = datasets_root / "coco128" / "coco128.yaml"
  
     if not coco128_yaml.exists():
@@ -184,6 +194,57 @@ def download_coco128() -> Path:
  
     return datasets_root / "coco128"
 
+def load_coco128_images(dataset_root: Path) -> list[dict]:
+    """
+    Return a list of dicts, one per image that contains at least one of our
+    target classes. Each dict has:
+        path       – absolute path to the .jpg
+        width      – image width in pixels
+        height     – image height in pixels
+        gt_objects – list of {coco_id, cx, cy, w, h}  (normalised)
+    """
+    from PIL import Image  # type: ignore[import]
+ 
+    img_dir   = dataset_root / "images" / "train"  # COCO128 is all in "train"
+    label_dir = dataset_root / "labels" / "train"
+ 
+    records = []
+    for img_path in sorted(img_dir.glob("*.jpg")):
+        label_path = label_dir / img_path.with_suffix(".txt").name
+        if not label_path.exists():
+            continue
+ 
+        # Parse YOLO label file: each line = "class_id cx cy w h"
+        gt_objects = []
+        for line in label_path.read_text().strip().splitlines():
+            parts = line.split()
+            if len(parts) != 5:
+                continue
+            coco_id = int(parts[0])
+            if coco_id not in COCO_CLASS_IDS:
+                continue
+            gt_objects.append({
+                "coco_id": coco_id,
+                "cx": float(parts[1]),
+                "cy": float(parts[2]),
+                "w":  float(parts[3]),
+                "h":  float(parts[4]),
+            })
+ 
+        if not gt_objects:
+            continue  # image has none of our 11 classes
+ 
+        with Image.open(img_path) as im:
+            width, height = im.size
+ 
+        records.append({
+            "path":       img_path,
+            "width":      width,
+            "height":     height,
+            "gt_objects": gt_objects,
+        })
+ 
+    return records
 
 def generate_image(run_id: str, idx: int) -> dict[str, Any]:
     """
