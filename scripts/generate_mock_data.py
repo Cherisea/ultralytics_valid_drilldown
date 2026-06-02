@@ -155,8 +155,8 @@ def load_coco128_images(dataset_root: Path) -> list[dict]:
         height     image height in pixels
         gt_objects list of {coco_id, cx, cy, w, h}  (normalised)
     """
-    img_dir   = dataset_root / "images" / "train"  # COCO128 is all in "train"
-    label_dir = dataset_root / "labels" / "train"
+    img_dir   = dataset_root / "images" / "train2017"  # COCO128 is all in "train"
+    label_dir = dataset_root / "labels" / "train2017"
  
     records = []
     for img_path in sorted(img_dir.glob("*.jpg")):
@@ -480,7 +480,7 @@ def main() -> None:
     if not records:
         raise RuntimeError(
             "No COCO128 images found with target classes. "
-            "Check that ~/datasets/coco128/ was downloaded correctly."
+            "Check that ~/dataset/coco128/ was downloaded correctly."
     )
 
     # Shuffle with fixed seed then cap at MAX_IMAGES
