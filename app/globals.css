@@ -1,3 +1,7 @@
+/* 
+  Root style sheet applied to shared HTML tags across all pages.
+*/
+
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
