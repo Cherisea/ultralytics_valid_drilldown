@@ -10,11 +10,18 @@ model outputs.
  
 ─── What the real production pipeline looks like ──────────────────────────────
  
-  Layer 1 — Aggregate metrics       → model.val()  → results.box.map50 etc.
-  Layer 2 — Per-image summary       → model.val()  → results.box.image_metrics
-  Layer 3 — Per-box detail          → model.predict() + label loading + IoU
-                                       matching (what this script simulates)
- 
+    Layer 1 — Aggregate metrics       → model.val()  → results.box.map50 etc.
+    Layer 2 — Per-image summary       → model.val()  → results.box.image_metrics
+    Layer 3 — Per-box detail          → model.predict() + label loading + IoU
+                                        matching (what this script simulates)
+
+─── Steps to production ────────────────────────────────────────────────────────
+
+    1, Get GT boxes from wherever annotations are stored, a MongoDB collection, 
+        a cloud service storage bucket or directly from YOLO dataset YAML;
+    2, Replace simulated predictions with real model output;
+    3, Replace JSON file writes with MongoDB writes;
+
 ─── Outputs ───────────────────────────────────────────────────────────────────
  
     data/run_001.json
