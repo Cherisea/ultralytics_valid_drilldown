@@ -1,0 +1,23 @@
+{
+  "name": "ultralytics_valid_drilldown",
+  "version": "1.0.0",
+  "description": "This prototype demonstrates the image-drilldown layer that sits underneath the existing validation dashboard, allowing a user to inspect individual images that weren't performing as well as we expect on certain metrics. This layer also empowers a user to discover potential patterns from failing cases, thus providing actionable insights into how to improve model performance on later iterations.",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cherisea/ultralytics_valid_drilldown.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Cherisea/ultralytics_valid_drilldown/issues"
+  },
+  "homepage": "https://github.com/Cherisea/ultralytics_valid_drilldown#readme"
+}
