@@ -75,7 +75,7 @@ SEED = 42
 random.seed(SEED)
  
 # ── Config ─────────────────────────────────────────────────────────────────────
-N_IMAGES = 60
+MAX_IMAGES = 60      # cap for a manageable prototype dataset
 IOU_THRESHOLD = 0.50  # COCO standard: IoU ≥ 0.5 → true positive
 
 # 0=person, 1=bicycle, 2=car, 3=motorcycle, 5=bus, 7=truck,
@@ -500,12 +500,34 @@ def compute_run_metrics(
 
 def main() -> None:
     out_dir = Path("data/")
+    public_img_dir = Path("public/images")
     out_dir.mkdir(parents=True, exist_ok=True)
+    public_img_dir.mkdir(parents=True, exist_ok=True)
  
-    run_id = "run-" + str(uuid.uuid4())[:8]
-    print(f"Generating {N_IMAGES} images for run {run_id} …")
+    run_id = "run-coco8-001"
  
-    images = [generate_image(run_id, i) for i in range(N_IMAGES)]
+    # ── Load real COCO128 images and annotations ──────────────────────────────
+    print("Loading COCO128 dataset …")
+    dataset_root = download_coco128()
+    records      = load_coco128_images(dataset_root)
+ 
+    if not records:
+        raise RuntimeError(
+            "No COCO128 images found with target classes. "
+            "Check that ~/datasets/coco128/ was downloaded correctly."
+    )
+
+    # Shuffle with fixed seed then cap at MAX_IMAGES
+    random.shuffle(records)
+    records = records[:MAX_IMAGES]
+ 
+    print(f"Found {len(records)} images with target classes (capped at {MAX_IMAGES})")
+    print(f"Generating fixtures for run {run_id} …")
+ 
+    images = [
+        generate_image(run_id, i, rec, public_img_dir)
+        for i, rec in enumerate(records)
+    ]
  
     agg, per_class, confusion = compute_run_metrics(images)
  
@@ -513,11 +535,11 @@ def main() -> None:
         "id":               run_id,
         "modelId":          "model-yolo26n-coco-finetune",
         "modelName":        "yolo26n (fine-tuned)",
-        "datasetName":      "coco8-custom-val",
+        "datasetName":      "coco128",
         "split":            "val",
         "createdAt":        datetime.now(timezone.utc).isoformat(),
         "status":           "complete",
-        "imageCount":       N_IMAGES,
+        "imageCount":       len(images),
         "classNames":       [c["name"] for c in CLASSES],
         "aggregateMetrics": agg,
         "perClassMetrics":  per_class,
@@ -628,7 +650,7 @@ def build_from_real_model(
  
     with open(data_yaml) as f:
         cfg = yaml.safe_load(f)
-    val_img_dir = P(cfg["path"]) / cfg["val"]
+    val_img_dir = Path(cfg["path"]) / cfg["val"]
     class_names: list[str] = list(cfg["names"].values()) if isinstance(cfg["names"], dict) else cfg["names"]
  
     images_out: list[dict] = []
