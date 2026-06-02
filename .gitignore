@@ -4,3 +4,9 @@ Pipfile.lock
 
 # Generated data files
 data/
+
+# Javascript dependencies folder
+node_modules/
+
+# Next.js build cache
+.next/
