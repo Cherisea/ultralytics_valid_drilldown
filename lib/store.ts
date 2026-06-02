@@ -172,6 +172,23 @@ function buildGroup(label: string, items: IndexEntry[]): PatternGroup {
     return { label, count: items.length, avgScore, errorBreakdown, representativeImageIds };
 }
 
+function groupByClass(entries: IndexEntry[]): PatternGroup[] {
+    // An image belongs to every group whose class appears in classesPresent.
+    // Returns an array of PatternGroup  objects, one per class, sorted by the number
+    // of images containing that group.
+    const buckets = new Map<string, IndexEntry[]>();
+    for (const entry of entries) {
+      for (const cls of entry.classesPresent) {
+        if (!buckets.has(cls)) buckets.set(cls, []);
+        buckets.get(cls)!.push(entry);
+      }
+    }
+
+    return [...buckets.entries()]
+      .map(([label, items]) => buildGroup(label, items))
+      .sort((a, b) => b.count - a.count);
+}
+
 /**
  * Returns the ValidationRun for the given runId, or null if not found.
  * The prototype has one fixture run; production would query MongoDB by ID.
