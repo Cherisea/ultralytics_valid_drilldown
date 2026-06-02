@@ -50,9 +50,6 @@ random.seed(SEED)
 # ── Config ─────────────────────────────────────────────────────────────────────
 MAX_IMAGES = 60      # cap for a manageable prototype dataset
 IOU_THRESHOLD = 0.50  # COCO standard: IoU ≥ 0.5 → true positive
-
-# 0=person, 1=bicycle, 2=car, 3=motorcycle, 5=bus, 7=truck,
-# 9=traffic light, 11=stop sign, 16=dog, 17=cat, 14=bird
 COCO_CLASS_IDS = {0, 1, 2, 3, 5, 7, 9, 11, 16, 17, 14}
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
