@@ -109,21 +109,12 @@ N_CLASSES = len(CLASSES)
 CLASS_BY_ID       = {c["id"]: c for c in CLASSES}
 CLASS_BY_COCO_ID  = {c["cocoId"]: c for c in CLASSES}
 
-def random_bbox(small: bool = False) -> list[float]:
-    """Generate a random normalised bounding box guaranteed to fit in [0, 1].
-    
-    Args:
-        small: custom classification for a detected object. Helpful for pattern discovery
-                among failed cases;
-    """
-    if small:
-        w = random.uniform(0.02, 0.08)
-        h = random.uniform(0.02, 0.08)
-    else:
-        w = random.uniform(0.07, 0.42)
-        h = random.uniform(0.07, 0.42)
-    cx = random.uniform(w / 2, 1 - w / 2)
-    cy = random.uniform(h / 2, 1 - h / 2)
+def random_bbox_near(cx: float, cy: float) -> list[float]:
+    """Random box with no GT — spurious false positive near a given location."""
+    w = random.uniform(0.04, 0.20)
+    h = random.uniform(0.04, 0.20)
+    cx = max(w / 2, min(1 - w / 2, cx + random.uniform(-0.15, 0.15)))
+    cy = max(h / 2, min(1 - h / 2, cy + random.uniform(-0.15, 0.15)))
     return [cx, cy, w, h]
 
 def jitter_bbox(box: list[float], jitter: float = 0.06) -> list[float]:
