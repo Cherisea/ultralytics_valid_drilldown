@@ -61,6 +61,8 @@ import json
 import random
 import uuid
 import yaml
+
+from ultralytics.utils.downloads import download
 from pathlib import Path as P
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -161,6 +163,27 @@ def compute_iou(b1: list[float], b2: list[float]) -> float:
 
 def bbox_to_dict(box: list[float]) -> dict[str, float]:
     return {"x": box[0], "y": box[1], "w": box[2], "h": box[3]}
+
+# ── COCO128 loading ────────────────────────────────────────────────────────────
+
+def download_coco128() -> Path:
+    """
+    Download COCO128 via Ultralytics and return the dataset root path.
+    COCO128 is ~6MB and contains 128 real images from COCO train 2017.
+    """
+    datasets_root = Path.home() / "datasets"
+    coco128_yaml  = datasets_root / "coco128" / "coco128.yaml"
+ 
+    if not coco128_yaml.exists():
+        print("  Downloading COCO128 (~6MB) …")
+        download(
+            "https://ultralytics.com/assets/coco128.zip",
+            dir=datasets_root,
+            unzip=True,
+        )
+ 
+    return datasets_root / "coco128"
+
 
 def generate_image(run_id: str, idx: int) -> dict[str, Any]:
     """
