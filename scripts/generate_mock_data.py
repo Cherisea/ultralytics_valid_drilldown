@@ -62,6 +62,7 @@ import random
 import uuid
 import yaml
 from PIL import Image
+import shutil
 
 from ultralytics.utils.downloads import download
 from collections import defaultdict
@@ -192,13 +193,11 @@ def load_coco128_images(dataset_root: Path) -> list[dict]:
     """
     Return a list of dicts, one per image that contains at least one of our
     target classes. Each dict has:
-        path       – absolute path to the .jpg
-        width      – image width in pixels
-        height     – image height in pixels
-        gt_objects – list of {coco_id, cx, cy, w, h}  (normalised)
+        path       absolute path to the .jpg
+        width      image width in pixels
+        height     image height in pixels
+        gt_objects list of {coco_id, cx, cy, w, h}  (normalised)
     """
-    from PIL import Image  # type: ignore[import]
- 
     img_dir   = dataset_root / "images" / "train"  # COCO128 is all in "train"
     label_dir = dataset_root / "labels" / "train"
  
@@ -240,141 +239,134 @@ def load_coco128_images(dataset_root: Path) -> list[dict]:
  
     return records
 
-def generate_image(run_id: str, idx: int) -> dict[str, Any]:
+def generate_image(run_id: str, idx: int, record: dict, public_img_dir: Path) -> dict[str, Any]:
     """
-    Simulate the full model output for one validation image.
- 
-    Decision tree per ground truth instance
-    ──────────────────────────────
-    1. Roll ≤ base_recall? → MISSED (false negative)
-    2. Roll → one of:
-       a. True positive       jitter_bbox, same class, IoU ≥ 0.5, high conf
-       b. Localisation error  displace_bbox, same class, IoU < 0.5, med conf
-       c. Classification err  jitter_bbox, wrong class, IoU ≥ 0.5, med conf
-    3. Sprinkle spurious false positives (unrelated to any GT)
+        Build a full ImageResult for one real COCO128 image.
+    
+        Real GT boxes are read from the label file. Synthetic predictions are
+        generated on top of them using per-class difficulty profiles
+        ──────────────────────────────
+        1. Roll ≤ base_recall? → MISSED (false negative)
+        2. Roll → one of:
+        a. True positive       jitter_bbox, same class, IoU ≥ 0.5, high conf
+        b. Localisation error  displace_bbox, same class, IoU < 0.5, med conf
+        c. Classification err  jitter_bbox, wrong class, IoU ≥ 0.5, med conf
+        3. Sprinkle spurious false positives (unrelated to any GT)
     """
-    img_id   = str(uuid.uuid4())
-    w_px, h_px = random.choice(IMAGE_SIZES)
-    filename   = f"val_{idx:04d}.jpg"
-    # picsum.photos/seed/<seed>/<w>/<h> gives a deterministic image
-    image_url  = f"https://picsum.photos/seed/coco{idx}/{w_px}/{h_px}"
+    img_path: Path = record["path"]
+    filename = f"val_{idx:04d}.jpg"
+    dest = public_img_dir / filename
  
-    # Sample 1–4 distinct classes for this image
-    n_cls         = random.choices([1, 2, 3, 4], weights=[30, 40, 20, 10])[0]
-    present_cls   = random.sample(CLASSES, min(n_cls, N_CLASSES))
+    # Copy the real image into Next.js public directory
+    if not dest.exists():
+        shutil.copy2(img_path, dest)
+ 
+    img_id    = str(uuid.uuid4())
+    image_url = f"/images/{filename}"   # served by Next.js as a static asset
  
     ground_truths: list[dict] = []
     predictions:   list[dict] = []
  
-    for cls in present_cls:
-        n_inst = random.choices([1, 2, 3, 4], weights=[50, 30, 15, 5])[0]
+    for gt_obj in record["gt_objects"]:
+        cls = CLASS_BY_COCO_ID[gt_obj["coco_id"]]
+        gt_box = [gt_obj["cx"], gt_obj["cy"], gt_obj["w"], gt_obj["h"]]
+        gt_id  = str(uuid.uuid4())
  
-        for _ in range(n_inst):
-            gt_id  = str(uuid.uuid4())
-            gt_box = random_bbox(small=cls["small"])
- 
-            # ── Step 1: missed entirely? ─────────────────────────────────────
-            if random.random() > cls["base_recall"]:
-                ground_truths.append({
-                    "id":                  gt_id,
-                    "classId":             cls["id"],
-                    "className":           cls["name"],
-                    "bbox":                bbox_to_dict(gt_box),
-                    "matched":             False,
-                    "matchedPredictionId": None,
-                    "nearestPredictionId": None,
-                    "nearestPredictionIou": 0.0,
-                    "errorType":           "false_negative",
-                })
-                continue
- 
-            # ── Step 2: what kind of detection? ─────────────────────────────
-            # Probability budget partitioned from base_precision:
-            #   tp_prob + loc_prob + cls_err_prob ≤ base_precision
-            loc_prob     = 0.08
-            cls_err_prob = 0.05 if cls["confuses_with"] else 0.0
-            tp_prob      = max(0.0, cls["base_precision"] - loc_prob - cls_err_prob)
- 
-            r = random.random()
- 
-            if r < tp_prob:
-                # True positive — correct class, well-localised
-                pred_box      = jitter_bbox(gt_box)
-                pred_class_id = cls["id"]
-                iou_val       = compute_iou(gt_box, pred_box)
-                conf          = round(random.uniform(0.60, 0.95), 4)
-                error_type    = None
- 
-            elif r < tp_prob + loc_prob:
-                # Localisation error — right class, poor overlap
-                pred_box      = displace_bbox(gt_box)
-                pred_class_id = cls["id"]
-                iou_val       = compute_iou(gt_box, pred_box)
-                conf          = round(random.uniform(0.35, 0.65), 4)
-                error_type    = "localization"
- 
-            elif r < tp_prob + loc_prob + cls_err_prob:
-                # Classification error — right location, wrong class label
-                pred_box      = jitter_bbox(gt_box)
-                pred_class_id = random.choice(cls["confuses_with"])
-                iou_val       = compute_iou(gt_box, pred_box)
-                conf          = round(random.uniform(0.40, 0.70), 4)
-                error_type    = "classification"
- 
-            else:
-                # Remaining probability mass → treat as TP
-                pred_box      = jitter_bbox(gt_box)
-                pred_class_id = cls["id"]
-                iou_val       = compute_iou(gt_box, pred_box)
-                conf          = round(random.uniform(0.60, 0.95), 4)
-                error_type    = None
- 
-            # Standard COCO matching rule:
-            # TP ↔ same class AND IoU ≥ 0.5; classification errors never match
-            matched = (iou_val >= IOU_THRESHOLD) and (error_type != "classification")
-            pred_id = str(uuid.uuid4())
- 
-            predictions.append({
-                "id":           pred_id,
-                "classId":      pred_class_id,
-                "className":    CLASS_BY_ID[pred_class_id]["name"],
-                "confidence":   conf,
-                "bbox":         bbox_to_dict(pred_box),
-                "matched":      matched,
-                "iou":          iou_val,
-                "errorType":    error_type,
-                "groundTruthId": gt_id,
-            })
- 
-            # GT records its own failure mode for easy filtering on the frontend
-            gt_error: str | None
-            if matched:
-                gt_error = None
-            elif error_type == "localization":
-                gt_error = "localization"
-            elif error_type == "classification":
-                gt_error = "classification"
-            else:
-                gt_error = "false_negative"
- 
+        # ── Step 1: missed entirely? ─────────────────────────────────────────
+        if random.random() > cls["base_recall"]:
             ground_truths.append({
-                "id":                   gt_id,
-                "classId":              cls["id"],
-                "className":            cls["name"],
-                "bbox":                 bbox_to_dict(gt_box),
-                "matched":              matched,
-                "matchedPredictionId":  pred_id if matched else None,
-                # Diagnostic: link the GT to the closest (unmatched) prediction
-                "nearestPredictionId":  None if matched else pred_id,
-                "nearestPredictionIou": None if matched else iou_val,
-                "errorType":            gt_error,
+                "id":                  gt_id,
+                "classId":             cls["id"],
+                "className":           cls["name"],
+                "bbox":                bbox_to_dict(gt_box),
+                "matched":             False,
+                "matchedPredictionId": None,
+                "nearestPredictionId": None,
+                "nearestPredictionIou": 0.0,
+                "errorType":           "false_negative",
             })
+            continue
  
-    # ── Spurious false positives (no associated GT) ──────────────────────────
+        # ── Step 2: what kind of detection? ─────────────────────────────────
+        loc_prob     = 0.08
+        cls_err_prob = 0.05 if cls["confuses_with"] else 0.0
+        tp_prob      = max(0.0, cls["base_precision"] - loc_prob - cls_err_prob)
+ 
+        r = random.random()
+ 
+        if r < tp_prob:
+            pred_box      = jitter_bbox(gt_box)
+            pred_class_id = cls["id"]
+            iou_val       = compute_iou(gt_box, pred_box)
+            conf          = round(random.uniform(0.60, 0.95), 4)
+            error_type    = None
+ 
+        elif r < tp_prob + loc_prob:
+            pred_box      = displace_bbox(gt_box)
+            pred_class_id = cls["id"]
+            iou_val       = compute_iou(gt_box, pred_box)
+            conf          = round(random.uniform(0.35, 0.65), 4)
+            error_type    = "localization"
+ 
+        elif r < tp_prob + loc_prob + cls_err_prob:
+            pred_box      = jitter_bbox(gt_box)
+            pred_class_id = random.choice(cls["confuses_with"])
+            iou_val       = compute_iou(gt_box, pred_box)
+            conf          = round(random.uniform(0.40, 0.70), 4)
+            error_type    = "classification"
+ 
+        else:
+            pred_box      = jitter_bbox(gt_box)
+            pred_class_id = cls["id"]
+            iou_val       = compute_iou(gt_box, pred_box)
+            conf          = round(random.uniform(0.60, 0.95), 4)
+            error_type    = None
+ 
+        matched    = (iou_val >= IOU_THRESHOLD) and (error_type != "classification")
+        pred_id    = str(uuid.uuid4())
+        pred_class = CLASS_BY_ID[pred_class_id]
+ 
+        predictions.append({
+            "id":            pred_id,
+            "classId":       pred_class_id,
+            "className":     pred_class["name"],
+            "confidence":    conf,
+            "bbox":          bbox_to_dict(pred_box),
+            "matched":       matched,
+            "iou":           iou_val,
+            "errorType":     error_type,
+            "groundTruthId": gt_id,
+        })
+ 
+        gt_error: str | None
+        if matched:
+            gt_error = None
+        elif error_type == "localization":
+            gt_error = "localization"
+        elif error_type == "classification":
+            gt_error = "classification"
+        else:
+            gt_error = "false_negative"
+ 
+        ground_truths.append({
+            "id":                   gt_id,
+            "classId":              cls["id"],
+            "className":            cls["name"],
+            "bbox":                 bbox_to_dict(gt_box),
+            "matched":              matched,
+            "matchedPredictionId":  pred_id if matched else None,
+            "nearestPredictionId":  None if matched else pred_id,
+            "nearestPredictionIou": None if matched else iou_val,
+            "errorType":            gt_error,
+        })
+ 
+    # ── Spurious false positives ──────────────────────────────────────────────
     n_fp = random.choices([0, 1, 2], weights=[60, 30, 10])[0]
     for _ in range(n_fp):
         fp_cls = random.choice(CLASSES)
-        fp_box = random_bbox(small=fp_cls["small"])
+        # Place near a random existing GT if possible, otherwise centre of image
+        anchor = random.choice(record["gt_objects"]) if record["gt_objects"] else {"cx": 0.5, "cy": 0.5}
+        fp_box = random_bbox_near(anchor["cx"], anchor["cy"])
         predictions.append({
             "id":            str(uuid.uuid4()),
             "classId":       fp_cls["id"],
@@ -387,10 +379,10 @@ def generate_image(run_id: str, idx: int) -> dict[str, Any]:
             "groundTruthId": None,
         })
  
-    # ── Per-image score (Dice / F1) ───────────────────────────────────────────
-    tp  = sum(1 for p in predictions if p["matched"])
-    fp  = sum(1 for p in predictions if not p["matched"])
-    fn  = sum(1 for g in ground_truths if not g["matched"])
+    # ── Per-image score ───────────────────────────────────────────────────────
+    tp    = sum(1 for p in predictions if p["matched"])
+    fp    = sum(1 for p in predictions if not p["matched"])
+    fn    = sum(1 for g in ground_truths if not g["matched"])
     denom = 2 * tp + fp + fn
     score = round(2 * tp / denom, 4) if denom else 0.0
  
@@ -406,7 +398,8 @@ def generate_image(run_id: str, idx: int) -> dict[str, Any]:
  
     # ── Tags ──────────────────────────────────────────────────────────────────
     tags: list[str] = []
-    if any(c["small"] for c in present_cls):
+    gt_classes = {CLASS_BY_COCO_ID[o["coco_id"]] for o in record["gt_objects"]}
+    if any(c["small"] for c in gt_classes):
         tags.append("small_objects")
     if len(ground_truths) >= 6:
         tags.append("crowded")
@@ -416,16 +409,15 @@ def generate_image(run_id: str, idx: int) -> dict[str, Any]:
         "runId":            run_id,
         "filename":         filename,
         "imageUrl":         image_url,
-        "width":            w_px,
-        "height":           h_px,
+        "width":            record["width"],
+        "height":           record["height"],
         "score":            score,
         "truePositives":    tp,
         "falsePositives":   fp,
         "falseNegatives":   fn,
         "dominantErrorType": dominant,
-        "classesPresent":   sorted({c["name"] for c in present_cls}),
+        "classesPresent":   sorted({CLASS_BY_COCO_ID[o["coco_id"]]["name"] for o in record["gt_objects"]}),
         "tags":             tags,
-        # Predictions sorted by confidence descending (matches NMS output order)
         "predictions":  sorted(predictions,   key=lambda p: -p["confidence"]),
         "groundTruths": ground_truths,
     }
