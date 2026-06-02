@@ -37,6 +37,7 @@ let _entries: IndexEntry[] = [];         // all images as flat array
 let _entryById: Map<string, IndexEntry>; // imageId → index entry
 let _detailById: Map<string, ImageResult>; // imageId → full image result
 
+
 // ---------------------------------------------------------------------------
 // Data fixture loading
 // ---------------------------------------------------------------------------
@@ -76,6 +77,7 @@ function load(): void {
    
     _entryById = new Map(_entries.map((e) => [e.id, e]));
 }
+
 
 // ---------------------------------------------------------------------------
 // Private helpers
