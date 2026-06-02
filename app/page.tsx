@@ -1,3 +1,8 @@
+/**
+ * Root homepage that automatically redirects to overview summary page.
+ * 
+ */
+
 import { redirect } from "next/navigation";
 
 /** Prototype has one fixture run; replace with real run discovery in production. */
