@@ -1,5 +1,6 @@
 /**
- * Overview page mapped to api/runs/[runId]/summary endpoint.
+ * Overview page returned to api/runs/[runId]/summary endpoint. This is the actual HTML
+ * page rendered in a browser.
 */
 
 import { getRun } from "@/lib/store";

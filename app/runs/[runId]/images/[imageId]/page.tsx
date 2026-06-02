@@ -1,5 +1,5 @@
 /**
- * Detailed image-level view mapped to /api/runs/[runId]/images[imageId] endpoint.
+ * Detailed image-level view returned to /api/runs/[runId]/images[imageId] endpoint.
  * 
  */
 
