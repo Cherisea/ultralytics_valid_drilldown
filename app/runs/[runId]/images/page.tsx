@@ -1,5 +1,11 @@
 /**
- * Filtered gallary page mapped to api/runs/[runId]/images endpoint.
+ * Filtered gallary page mapped to api/runs/[runId]/images endpoint. 
+ * 
+ * By default, it renders a paginated grid of image cards for 60 images
+ * sorted worst first -- each showing a thumbnail with metrics overlay. 
+ * 
+ * Filters are passed through URL query parameters.
+ * 
 */
 
 import { getRun, queryImages } from "@/lib/store";
