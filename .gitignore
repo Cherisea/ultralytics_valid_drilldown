@@ -13,3 +13,6 @@ node_modules/
 
 # COCO128 dataset
 dataset/
+
+# Images served by Next.js
+public/
