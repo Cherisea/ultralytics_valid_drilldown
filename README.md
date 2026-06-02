@@ -50,9 +50,9 @@ Full image-level detail: prediction, ground truth, confidence score and error ta
 
 ## Roadmap
 - [x] Data model and a mock generator;
-- [ ] A hierachical page that flows from result overview to filtered example list to image detail view;
+- [x] A hierachical page that flows from result overview to filtered example list to image detail view;
 - [ ] Bounding box overlay between prediction and ground truth;
-- [ ] Pattern-discovery grouping and clickable confusion matrix and filter/sort feature;
+- [x] Pattern-discovery grouping and clickable confusion matrix and filter/sort feature;
 - [ ] Polish README and create a short GIF demo;
 
 ## File Structure
