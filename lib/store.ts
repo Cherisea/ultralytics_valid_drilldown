@@ -16,7 +16,8 @@ import fs from "fs";
 import type {
     ValidationRun, ImageListItem,
     ImageResult, ImageFilters,
-    SortOrder,
+    SortOrder, PatternGroup,
+    ErrorType,
 } from "@/types/validation";
 
 
@@ -128,6 +129,47 @@ function applySort(entries: IndexEntry[], sort: SortOrder): IndexEntry[] {
             b.falsePositives + b.falseNegatives - (a.falsePositives + a.falseNegatives)
         );
     }
+}
+
+// ---------------------------------------------------------------------------
+// Pattern-group helpers
+// ---------------------------------------------------------------------------
+/**
+ * Build a PatternGroup from a label and the set of images belonging to it.
+ * Representative images are the 3 worst-scoring in the group — the examples
+ * most worth investigating first.
+ */
+function buildGroup(label: string, items: IndexEntry[]): PatternGroup {
+    if (items.length === 0) {
+      return {
+        label,
+        count: 0,
+        avgScore: 0,
+        errorBreakdown: {},
+        representativeImageIds: [],
+      };
+    }
+   
+    // Round to three decimal places to avoid floating point arithmetic noise
+    const avg = items.reduce((sum, i) => sum + i.score, 0) / items.length;
+    const avgScore = parseFloat(avg.toFixed(3));
+   
+    // Count dominant error types within this group (null = no dominant error)
+    const errorBreakdown: Partial<Record<ErrorType, number>> = {};
+    for (const item of items) {
+      if (item.dominantErrorType !== null) {
+        errorBreakdown[item.dominantErrorType] =
+          (errorBreakdown[item.dominantErrorType] ?? 0) + 1;
+      }
+    }
+   
+    // Three worst-scoring images as entry points into the group
+    const representativeImageIds = [...items]
+      .sort((a, b) => a.score - b.score)
+      .slice(0, 3)
+      .map((i) => i.id);
+   
+    return { label, count: items.length, avgScore, errorBreakdown, representativeImageIds };
 }
 
 /**
