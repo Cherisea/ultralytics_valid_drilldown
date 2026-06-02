@@ -47,12 +47,7 @@ IOU_THRESHOLD = 0.50  # COCO standard: IoU ≥ 0.5 → true positive
 # 0=person, 1=bicycle, 2=car, 3=motorcycle, 5=bus, 7=truck,
 # 9=traffic light, 11=stop sign, 16=dog, 17=cat, 14=bird
 COCO_CLASS_IDS = {0, 1, 2, 3, 5, 7, 9, 11, 16, 17, 14}
- 
-# Weighted image-size pool (most images are standard 640×480)
-IMAGE_SIZES = [
-    (640, 480), (640, 480), (640, 480),
-    (1280, 720), (640, 640), (800, 600),
-]
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Map from COCO ID → our internal class definition
 # base_recall     – P(model detects this GT instance at all)
@@ -133,7 +128,7 @@ def download_coco128() -> Path:
     Download COCO128 via Ultralytics and return the dataset root path.
     COCO128 is ~6MB and contains 128 real images from COCO train 2017.
     """
-    datasets_root = Path.home() / "dataset"
+    datasets_root = PROJECT_ROOT / "dataset"
     coco128_yaml  = datasets_root / "coco128" / "coco128.yaml"
  
     if not coco128_yaml.exists():
@@ -155,7 +150,7 @@ def load_coco128_images(dataset_root: Path) -> list[dict]:
         height     image height in pixels
         gt_objects list of {coco_id, cx, cy, w, h}  (normalised)
     """
-    img_dir   = dataset_root / "images" / "train2017"  # COCO128 is all in "train"
+    img_dir   = dataset_root / "images" / "train2017" 
     label_dir = dataset_root / "labels" / "train2017"
  
     records = []
@@ -480,7 +475,7 @@ def main() -> None:
     if not records:
         raise RuntimeError(
             "No COCO128 images found with target classes. "
-            "Check that ~/dataset/coco128/ was downloaded correctly."
+            f"Check that {PROJECT_ROOT}/dataset/coco128/ was downloaded correctly."
     )
 
     # Shuffle with fixed seed then cap at MAX_IMAGES
