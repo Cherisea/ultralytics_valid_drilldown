@@ -189,6 +189,41 @@ function groupByClass(entries: IndexEntry[]): PatternGroup[] {
       .sort((a, b) => b.count - a.count);
 }
 
+function groupByErrorType(entries: IndexEntry[]): PatternGroup[] {
+    const buckets = new Map<string, IndexEntry[]>();
+    for (const entry of entries) {
+      const key = entry.dominantErrorType ?? "none";
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key)!.push(entry);
+    }
+   
+    return (
+      [...buckets.entries()]
+        .map(([label, items]) => buildGroup(label, items))
+        // "none" (perfect images) last; everything else by count descending
+        .sort((a, b) => {
+          if (a.label === "none") return 1;
+          if (b.label === "none") return -1;
+          return b.count - a.count;
+        })
+    );
+}
+
+function groupByConfidence(entries: IndexEntry[]): PatternGroup[] {
+    // Three fixed buckets matching the UI's slider ranges.
+    const buckets: Array<{ label: string; pred: (c: number) => boolean }> = [
+      { label: "high (0.7–1.0)", pred: (c) => c >= 0.7 },
+      { label: "medium (0.4–0.7)", pred: (c) => c >= 0.4 && c < 0.7 },
+      { label: "low (0–0.4)", pred: (c) => c < 0.4 },
+    ];
+    return buckets
+      .map(({ label, pred }) =>
+        buildGroup(label, entries.filter((e) => pred(e._avgConf)))
+      )
+      .filter((g) => g.count > 0); // omit empty buckets from the response
+}
+   
+
 /**
  * Returns the ValidationRun for the given runId, or null if not found.
  * The prototype has one fixture run; production would query MongoDB by ID.
