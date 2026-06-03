@@ -60,13 +60,13 @@ Browser
 - **Confusion matrix as a navigation element.** Each cell is clickable and navigates to the gallery filtered by that true/predicted class pair. The matrix is not just a read-only chart — it is the primary drilldown entry point from the overview.
 
 ### Backend
-- Backend data models are stored in `scripts/models.py` to mirror the same contract for frontend defined in `types/validation.ts` and are for reference only to keep this project frontend focused. In production, data is sent in JSON format over HTTP protocol. 
+- **Backend API contracts for reference.** Data models are stored in `scripts/models.py` to mirror the same contract for frontend defined in `types/validation.ts` and are for reference only to keep this project frontend focused. In production, data is sent in JSON format over HTTP protocol. 
 
 ## Data model
 
 This demo leverages a subset of COCO128 dataset from Ultralytics. A total of 11 classes amomg all 80 are used to keep confusion matrix readable. Images that contain none of these classes are skipped.
  
-Furthermore, all bounding boxes use normalised YOLO `[cx, cy, w, h]` format — values in `[0, 1]` relative to image dimensions. The box overlay renderer uses this directly without pixel conversion.
+Furthermore, all bounding boxes use normalised YOLO `[cx, cy, w, h]` format — values in `[0, 1]` relative to image dimensions. Normalized coordinates are converted to SVG pixel values before rendering. The use of SVG `<rect>` element over HTML `<canvas>` is intentional as it makes hover interaction -- `onMouseEnter` straighforward to attach.
  
 **Five error types** form the diagnostic vocabulary of the entire prototype:
  
