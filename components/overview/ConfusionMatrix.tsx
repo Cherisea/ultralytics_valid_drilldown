@@ -27,20 +27,20 @@ export function ConfusionMatrix({ matrix, classNames, runId }: Props) {
     j: number,
     v: number,
   ): React.CSSProperties {
-    if (v === 0) return { color: "#303040" };
+    if (v === 0) return { color: "var(--t3)" };
 
     if (i === j) {
       const intensity = Math.sqrt(v / diagMax);
       return {
         background: `rgba(34, 197, 94, ${intensity * 0.65})`,
-        color: intensity > 0.4 ? "#FFFFFF" : "#6B7280",
+        color: intensity > 0.4 ? "#FFFFFF" : "var(--t2)",
       };
     }
 
     const intensity = Math.sqrt(v / offMax);
     return {
       background: `rgba(239, 68, 68, ${intensity * 0.75})`,
-      color: intensity > 0.35 ? "#FFFFFF" : "#9090A8",
+      color: intensity > 0.35 ? "#FFFFFF" : "var(--t2)",
     };
   }
 

@@ -210,7 +210,7 @@ export function BoxOverlay({ image }: Props) {
         }}
       >
         <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-          <span style={{ display: "inline-block", width: 16, height: 2, borderTop: "2px dashed #FFFFFF" }} />
+          <span style={{ display: "inline-block", width: 16, height: 2, borderTop: "2px dashed var(--t2)" }} />
           Ground truth
         </span>
         {(["false_positive","false_negative","localization","classification","duplicate"] as const).map(

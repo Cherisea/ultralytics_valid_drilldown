@@ -7,19 +7,19 @@
 /* ── Design tokens ─────────────────────────────────────────────────────────── */
 :root {
   /* Surfaces */
-  --bg:   #09090B;
-  --s1:   #111115;
-  --s2:   #1C1C22;
-  --s3:   #26262E;
+  --bg:   #FFFFFF;
+  --s1:   #F9FAFB;
+  --s2:   #F3F4F6;
+  --s3:   #E5E7EB;
 
   /* Borders */
-  --b1:   #27272D;
-  --b2:   #3F3F48;
+  --b1:   #E5E7EB;
+  --b2:   #D1D5DB;
 
   /* Text */
-  --t1:   #F0F0F8;
-  --t2:   #ABABC8;  
-  --t3:   #7878A0; 
+  --t1:   #111827;
+  --t2:   #4B5563; 
+  --t3:   #6B7280;
 
   /* Semantic error palette — used consistently in badges, overlays, charts */
   --fp:   #EF4444;   /* false_positive  */
