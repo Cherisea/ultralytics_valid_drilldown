@@ -51,8 +51,8 @@ export default async function PatternsPage({
         <div>
           <h2
             style={{
-              fontSize: "1.1rem",
-              fontWeight: 800,
+              fontSize: "2rem",
+              fontWeight: 700,
               letterSpacing: "-0.02em",
               color: "var(--t1)",
             }}
