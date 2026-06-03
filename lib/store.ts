@@ -44,9 +44,24 @@ let _detailById: Map<string, ImageResult>; // imageId → full image result
 function fixturesDir(): string {
     return path.join(process.cwd(), "data");
 }
-   
+  
+let _loadedAt: number | null = null;
 function load(): void {
-    if (_run !== null) return; // already loaded
+  if (_run !== null) {
+    // In dev: warn if fixture files have been modified since we loaded them.
+    // A new generator run won't take effect until the server is restarted.
+    if (process.env.NODE_ENV === "development" && _loadedAt !== null) {
+      const dir = fixturesDir();
+      const mtime = fs.statSync(path.join(dir, "images.json")).mtimeMs;
+      if (mtime > _loadedAt) {
+        console.warn(
+          "\n⚠️  data/fixtures/images.json has changed since the server started.\n" +
+          "   Restart `npm run dev` to load the new fixtures.\n"
+        );
+      }
+    }
+    return;
+    }
    
     const dir = fixturesDir();
    
