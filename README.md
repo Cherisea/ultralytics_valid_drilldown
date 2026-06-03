@@ -52,15 +52,11 @@ Browser
 
 
 ## Product and UX decisions
-### Frontend
 - **Server-side data retrieval**. Scripts in `app/api` defines the HTTP contract for external consumers and client components. All pages in `api/runs` are server components that directly fetch JSON data through `lib/store.ts` stored in local disk. This allows for one-command launch, end-to-end type safety and separation of concerns without unnecessary maintenance burnden.
 - **Worst-first default**. The gallery sorts by per-image F1 ascending. A reviewer opening the gallery immediately sees the most broken images, not a random sample. The sort is overridable. Note per-class table sorts by mAP50 ascending -- the class that the model struggles the most appeares at the top. The sorting critieria is not overridable.
 - **Dominant error type as a first-class signal.** Each image carries a `dominantErrorType` — whichever failure mode appeared most (false negative, localization, classification, false positive). This single field powers the gallery filter, the pattern grouping, and the badge on each card, making it the consistent vocabulary across all three screens.
 - **Pattern discovery through clustering.** The patterns view groups by class, error type, or confidence band — three dimensions that answer different questions without requiring any additional inference. The result is a ranked list of failure clusters (e.g. "28 images where false negatives dominate, average F1 of 0.41") with representative thumbnails and links to the full filtered gallery.
 - **Confusion matrix as a navigation element.** Each cell is clickable and navigates to the gallery filtered by that true/predicted class pair. The matrix is not just a read-only chart — it is the primary drilldown entry point from the overview.
-
-### Backend
-- **Backend API contracts for reference.** Data models are stored in `scripts/models.py` to mirror the same contract for frontend defined in `types/validation.ts` and are for reference only to keep this project frontend focused. In production, data is sent in JSON format over HTTP protocol. 
 
 ## Data model
 
@@ -98,30 +94,25 @@ The ground truth annotations are real. The predictions are not — they are gene
  
 **What the generator simulates:** `model.predict()` per image + IoU matching + error type classification. It does not simulate `model.val()` — aggregate metrics are derived from the simulated detections rather than from a real validation run.
 
-## API endpoints
+## API contract
+ 
+Four endpoints, all returning the same schema the frontend types describe:
+ 
 ```
-GET /api/runs/:id/summary
-
-Aggregate metrics, per-class tables and confusion matrix.
+GET /api/runs/:runId/summary
+    → ValidationRun: aggregate metrics, per-class metrics, confusion matrix
+ 
+GET /api/runs/:runId/images?class=&errorType=&confMin=&confMax=&sort=&page=
+    → ImageListResponse: paginated ImageListItem[] (no prediction arrays)
+ 
+GET /api/runs/:runId/patterns?groupBy=class|errorType|confidence
+    → PatternsResponse: ranked PatternGroup[] with representative image IDs
+ 
+GET /api/images/:imageId
+    → ImageDetailResponse: full ImageResult with predictions and ground truths
 ```
-
-```
-GET /api/runs/:id/images?class=&errorType=&confMin&confMax=&sort=worst&page=
-```
-The filtered, paginated list of images on which a model doens't perform well.
-
-```
-GET /api/images/:id
-```
-Full image-level detail: prediction, ground truth, confidence score and error tag.
-
-
-## Mocked and implemented
-- **Data Model**: considering Ultralytics API already provides dataset-level performance metrics and  per-image summary, a mocked data model is created that stores individual box coordinates, prediction confidence score, error-type classification and IoU values;
-
-## Scope
-
-## Evolution to production
+ 
+`types/validation.ts` (TypeScript) and `backend/models.py` (Pydantic v2) both describe this contract. In production, a FastAPI service would implement these endpoints with the same response shapes — the frontend would not change.
 
 ## Roadmap
 - [x] Data model and a mock generator;
