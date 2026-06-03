@@ -23,10 +23,6 @@ The three pages form one continuous funnel:
 ![Drilldown workflow](asset/drilldown_flow.png)
 Every entry poinnt -- a confusion matrix cell, a per-class table row, a pattern group card -- lands in the same filtered gallery.
 
-
-## Dataset
-This demo leverages a subset of COCO128 dataset from Ultralytics. A total of 11 classes amomg all 80 are used to keep confusion matrix readable. Images that contain none of these classes are skipped.
-
 ## Frontend Architecture
 
 ```
@@ -66,12 +62,25 @@ Browser
 ### Backend
 - Backend data models are stored in `scripts/models.py` to mirror the same contract for frontend defined in `types/validation.ts` and are for reference only to keep this project frontend focused. In production, data is sent in JSON format over HTTP protocol. 
 
-## Assumptions
-- Per-image evaluation results;
-- Predictions
-- Image labels (ground truth)
-- Confidence scores
-- Error metadata
+## Data model
+
+This demo leverages a subset of COCO128 dataset from Ultralytics. A total of 11 classes amomg all 80 are used to keep confusion matrix readable. Images that contain none of these classes are skipped.
+ 
+Furthermore, all bounding boxes use normalised YOLO `[cx, cy, w, h]` format — values in `[0, 1]` relative to image dimensions. The box overlay renderer uses this directly without pixel conversion.
+ 
+**Five error types** form the diagnostic vocabulary of the entire prototype:
+ 
+| Type | Definition |
+|---|---|
+| `false_positive` | Predicted box with no matching GT |
+| `false_negative` | GT object with no matching prediction |
+| `localization` | Right class, IoU < 0.5 |
+| `classification` | Right location, wrong class |
+| `duplicate` | Redundant prediction suppressed by NMS |
+ 
+Each `Detection` and `GroundTruth` carries cross-reference IDs (`groundTruthId`, `matchedPredictionId`, `nearestPredictionId`) so the detail view can draw both layers and link them on hover without additional requests.
+ 
+Per-image quality is measured as the Sørensen–Dice coefficient: `2TP / (2TP + FP + FN)`. This gives a single number in [0, 1] that drives the worst-first sort and the score bar on each card.
 
 ## API endpoints
 ```
