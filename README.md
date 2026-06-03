@@ -2,8 +2,20 @@
 This prototype demonstrates the image-drilldown layer that sits underneath the existing validation dashboard, allowing a user to inspect individual images that weren't performing as well as they expect on certain metrics. This layer also empowers a user to discover potential patterns from failing cases, thus providing actionable insights into how to improve model performance on later iterations.
 
 ## Setup
+```bash
+# 1. Install Python dependencies into a virtual environment.
+pipenv install -r requirements.txt
 
-## How to run this project
+# 2. Generate fixtures.
+python run scripts/generate_mock_data.py
+
+# 3. Install Node dependencies and start the app.
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in a browser. This lands on an overview page of validation run.
+
 
 ## Dataset
 This demo leverages a subset of COCO128 dataset from Ultralytics. A total of 11 classes amomg all 80 are used to keep confusion matrix readable. Images that contain none of these classes are skipped.
