@@ -114,6 +114,61 @@ GET /api/images/:imageId
  
 `types/validation.ts` (TypeScript) and `backend/models.py` (Pydantic v2) both describe this contract. In production, a FastAPI service would implement these endpoints with the same response shapes — the frontend would not change.
 
+## What Ultralytics already provides vs what this prototype adds
+
+**Layer 1 — Dataset-level aggregate metrics** ✅ Fully provided by `model.val()`
+ 
+```python
+results = model.val(data="coco8.yaml")
+results.box.map50        # overall mAP50
+results.box.maps         # per-class mAP50-95 list
+results.box.mp           # mean precision
+results.box.mr           # mean recall
+results.confusion_matrix # NxN matrix
+```
+This is what the Ultralytics Platform already shows today. The overview screen's metric cards, per-class table, and confusion matrix are all sourced from Layer 1.
+
+**Layer 2 — Per-image summary counts** ✅ Provided by `results.box.image_metrics`
+ 
+```python
+results.box.image_metrics
+# → {"path/to/img.jpg": {"tp": 3, "fp": 1, "fn": 2, "f1": 0.75, ...}}
+```
+ 
+Per-image precision, recall, F1, TP, FP, and FN at IoU=0.5. This gives the gallery's score bar, the TP/FP/FN counts on each card, and the worst-first sort. The Ultralytics Platform does not currently surface this — it is the first gap this prototype fills.
+
+**Layer 3 — Per-box detail** ❌ Not provided by `model.val()`
+ 
+`image_metrics` gives counts but no bounding box coordinates, no per-detection confidence scores, and no error type classification. There is no built-in way to know *which specific predictions* produced those counts, where those boxes are in the image, or whether a given failure was a localisation error vs a classification error vs a missed detection entirely.
+ 
+Getting Layer 3 requires three additional steps that the Ultralytics package does not perform:
+ 
+```python
+# Step 1 — run inference per image to get real prediction boxes
+preds = model.predict(img_path, conf=0.001, verbose=False)
+pred_boxes = preds[0].boxes   # .xyxyn, .cls, .conf
+ 
+# Step 2 — load ground truth from the YOLO .txt label file
+gt_boxes = parse_yolo_labels(img_path)
+ 
+# Step 3 — IoU matching to assign each prediction an error type
+for pred, gt, iou_val in match_boxes(pred_boxes, gt_boxes, iou_thresh=0.5):
+    error_type = classify_error(pred, gt, iou_val)
+    # → "false_positive" | "false_negative" | "localization" | "classification"
+```
+
+This is what `generate_image` simulates. Instead of calling `model.predict()`, it calls `jitter_bbox()` and `displace_bbox()` to produce plausible prediction boxes seeded from the real GT coordinates. Instead of computing real IoU between a real model's outputs and real GT, it uses probability profiles (`base_recall`, `base_precision`) to decide what kind of error each detection represents. The `compute_iou()` function and the error taxonomy are already implemented and match what a real integration would use — the simulation is a placeholder for the model call only.
+ 
+The detail view's box overlay, the error type badges, the pattern discovery grouping, and the confusion matrix drilldown are all powered by Layer 3 data. They are the second gap this prototype fills — and the one with no Ultralytics API equivalent today.
+
+## How this connects to a real production system
+ 
+Four substitutions, nothing else changes:
+
+**GT source** — `load_coco128_images()` is replaced by a query against your dataset registry or MongoDB annotations collection. The returned shape stays identical;
+
+
+
 ## Roadmap
 - [x] Data model and a mock generator;
 - [x] A hierachical page that flows from result overview to filtered example list to image detail view;
