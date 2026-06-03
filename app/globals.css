@@ -150,8 +150,10 @@ img { display: block; max-width: 100%; }
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--t3);
+  color: var(--t1);
   margin-bottom: 1rem;
+  padding-left: 0.6rem;          /* space for the border */
+  border-left: 2px solid var(--b2);  /* visual anchor */
 }
 
 /* ── Table ──────────────────────────────────────────────────────────────────── */
