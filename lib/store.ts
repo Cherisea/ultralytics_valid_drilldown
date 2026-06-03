@@ -205,13 +205,11 @@ function groupByErrorType(entries: IndexEntry[]): PatternGroup[] {
    
     return (
       [...buckets.entries()]
-        .map(([label, items]) => buildGroup(label, items, label !== "None" ? {errorType: label as ErrorType} : {}))
-        // "none" (perfect images) last; everything else by count descending
-        .sort((a, b) => {
-          if (a.label === "none") return 1;
-          if (b.label === "none") return -1;
-          return b.count - a.count;
-        })
+        .map(([label, items]) => buildGroup(label, 
+                                  items, 
+                                  label !== "None" ? {errorType: label as ErrorType} : {}))
+        .filter((g) => g.label !== "none")
+        .sort((a, b) => b.count - a.count)
     );
 }
 
