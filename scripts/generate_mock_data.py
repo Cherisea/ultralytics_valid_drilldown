@@ -497,7 +497,7 @@ def build_from_real_model(
     model_path: str,
     data_yaml: str,
     out_dir: Path,
-) -> None:  # pragma: no cover
+) -> None:
     """
     Build the same three fixture files using a real YOLO model.
  

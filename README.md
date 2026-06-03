@@ -186,13 +186,6 @@ Four substitutions, nothing else changes:
  
 **Multi-run comparison.** The current schema is one run at a time. The store's `getRun(runId)` function and the route structure already support multiple runs — the only missing piece is a runs-list page at `/` and a UI for selecting which run to view.
 
-## Roadmap
-- [x] Data model and a mock generator;
-- [x] A hierachical page that flows from result overview to filtered example list to image detail view;
-- [x] Bounding box overlay between prediction and ground truth;
-- [x] Pattern-discovery grouping and clickable confusion matrix and filter/sort feature;
-- [ ] Polish README and create a short GIF demo;
-
 ## File Structure
 validation-prototype/
 ├── README.md
