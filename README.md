@@ -1,7 +1,7 @@
-# ultralytics_valid_drilldown
-This prototype demonstrates the image-drilldown layer that sits underneath the existing validation dashboard, allowing a user to inspect individual images that weren't performing as well as we expect on certain metrics. This layer also empowers a user to discover potential patterns from failing cases, thus providing actionable insights into how to improve model performance on later iterations.
+# Validation Explorer -- Ultralytics Platform Prototype
+This prototype demonstrates the image-drilldown layer that sits underneath the existing validation dashboard, allowing a user to inspect individual images that weren't performing as well as they expect on certain metrics. This layer also empowers a user to discover potential patterns from failing cases, thus providing actionable insights into how to improve model performance on later iterations.
 
-## Get started
+## Setup
 
 ## How to run this project
 
@@ -54,7 +54,7 @@ Full image-level detail: prediction, ground truth, confidence score and error ta
 ## Roadmap
 - [x] Data model and a mock generator;
 - [x] A hierachical page that flows from result overview to filtered example list to image detail view;
-- [ ] Bounding box overlay between prediction and ground truth;
+- [x] Bounding box overlay between prediction and ground truth;
 - [x] Pattern-discovery grouping and clickable confusion matrix and filter/sort feature;
 - [ ] Polish README and create a short GIF demo;
 
