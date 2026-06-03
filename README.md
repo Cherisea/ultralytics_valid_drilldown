@@ -59,6 +59,7 @@ Browser
 ### Frontend
 - **Server-side data retrieval**. Scripts in `app/api` defines the HTTP contract for external consumers and client components. All pages in `api/runs` are server components that directly fetch JSON data through `lib/store.ts` stored in local disk. This allows for one-command launch, end-to-end type safety and separation of concerns without unnecessary maintenance burnden.
 - **Worst-first default**. The gallery sorts by per-image F1 ascending. A reviewer opening the gallery immediately sees the most broken images, not a random sample. The sort is overridable. Note per-class table sorts by mAP50 ascending -- the class that the model struggles the most appeares at the top. The sorting critieria is not overridable.
+- **Dominant error type as a first-class signal.** Each image carries a `dominantErrorType` — whichever failure mode appeared most (false negative, localization, classification, false positive). This single field powers the gallery filter, the pattern grouping, and the badge on each card, making it the consistent vocabulary across all three screens.
 
 ### Backend
 - Backend data models are stored in `scripts/models.py` to mirror the same contract for frontend defined in `types/validation.ts` and are for reference only to keep this project frontend focused. In production, data is sent in JSON format over HTTP protocol. 

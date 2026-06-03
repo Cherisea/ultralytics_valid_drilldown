@@ -175,6 +175,7 @@ export interface PatternGroup {
   avgScore: number;                               // mean score across the group
   errorBreakdown: Partial<Record<ErrorType, number>>;
   representativeImageIds: string[];               // top 3 worst images in the group
+  galleryParams: Partial<ImageFilters>;
 }
 
 export interface PatternsResponse {

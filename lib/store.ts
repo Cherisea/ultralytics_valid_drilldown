@@ -142,7 +142,9 @@ function applySort(entries: IndexEntry[], sort: SortOrder): IndexEntry[] {
  * Representative images are the 3 worst-scoring in the group — the examples
  * most worth investigating first.
  */
-function buildGroup(label: string, items: IndexEntry[]): PatternGroup {
+function buildGroup(label: string, 
+                    items: IndexEntry[],
+                    galleryParams: Partial<ImageFilters> = {},): PatternGroup {
     if (items.length === 0) {
       return {
         label,
@@ -150,6 +152,7 @@ function buildGroup(label: string, items: IndexEntry[]): PatternGroup {
         avgScore: 0,
         errorBreakdown: {},
         representativeImageIds: [],
+        galleryParams,
       };
     }
    
@@ -172,7 +175,7 @@ function buildGroup(label: string, items: IndexEntry[]): PatternGroup {
       .slice(0, 3)
       .map((i) => i.id);
    
-    return { label, count: items.length, avgScore, errorBreakdown, representativeImageIds };
+    return { label, count: items.length, avgScore, errorBreakdown, representativeImageIds, galleryParams };
 }
 
 function groupByClass(entries: IndexEntry[]): PatternGroup[] {
@@ -188,7 +191,7 @@ function groupByClass(entries: IndexEntry[]): PatternGroup[] {
     }
 
     return [...buckets.entries()]
-      .map(([label, items]) => buildGroup(label, items))
+      .map(([label, items]) => buildGroup(label, items, { class: label }))
       .sort((a, b) => b.count - a.count);
 }
 
@@ -202,7 +205,7 @@ function groupByErrorType(entries: IndexEntry[]): PatternGroup[] {
    
     return (
       [...buckets.entries()]
-        .map(([label, items]) => buildGroup(label, items))
+        .map(([label, items]) => buildGroup(label, items, label !== "None" ? {errorType: label as ErrorType} : {}))
         // "none" (perfect images) last; everything else by count descending
         .sort((a, b) => {
           if (a.label === "none") return 1;
@@ -213,17 +216,20 @@ function groupByErrorType(entries: IndexEntry[]): PatternGroup[] {
 }
 
 function groupByConfidence(entries: IndexEntry[]): PatternGroup[] {
-    // Three fixed buckets matching the UI's slider ranges.
-    const buckets: Array<{ label: string; pred: (c: number) => boolean }> = [
-      { label: "high (0.7–1.0)", pred: (c) => c >= 0.7 },
-      { label: "medium (0.4–0.7)", pred: (c) => c >= 0.4 && c < 0.7 },
-      { label: "low (0–0.4)", pred: (c) => c < 0.4 },
-    ];
-    return buckets
-      .map(({ label, pred }) =>
-        buildGroup(label, entries.filter((e) => pred(e._avgConf)))
-      )
-      .filter((g) => g.count > 0); // omit empty buckets from the response
+  const buckets: Array<{
+    label: string;
+    pred: (c: number) => boolean;
+    galleryParams: Partial<ImageFilters>;
+  }> = [
+    { label: "high (0.7–1.0)",   pred: (c) => c >= 0.7,              galleryParams: { confMin: 0.7 } },
+    { label: "medium (0.4–0.7)", pred: (c) => c >= 0.4 && c < 0.7,   galleryParams: { confMin: 0.4, confMax: 0.7 } },
+    { label: "low (0–0.4)",      pred: (c) => c < 0.4,               galleryParams: { confMax: 0.4 } },
+  ];
+  return buckets
+    .map(({ label, pred, galleryParams }) =>
+      buildGroup(label, entries.filter((e) => pred(e._avgConf)), galleryParams),
+    )
+    .filter((g) => g.count > 0);
 }
    
 

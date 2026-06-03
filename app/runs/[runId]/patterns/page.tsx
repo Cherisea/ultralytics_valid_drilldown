@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { errorColor } from "@/lib/colors";
 import { galleryUrl } from "@/lib/filters";
 import Link from "next/link";
-import type { ErrorType, PatternGroupBy } from "@/types/validation";
+import type { PatternGroupBy } from "@/types/validation";
 
 const GROUP_BY_OPTIONS: Array<{ value: PatternGroupBy; label: string; desc: string }> = [
   { value: "errorType",  label: "By error type",   desc: "Group images by their most common failure mode" },
@@ -109,15 +109,7 @@ export default async function PatternsPage({
           );
 
           // Gallery URL for this group
-          const href =
-            groupBy === "class"
-              ? galleryUrl(runId, { class: group.label, sort: "worst" })
-              : groupBy === "errorType" && group.label !== "none"
-              ? galleryUrl(runId, {
-                  errorType: group.label as ErrorType,
-                  sort: "worst",
-                })
-              : galleryUrl(runId, { sort: "worst" });
+          const href = galleryUrl(runId, { ...group.galleryParams, sort: "worst" });
 
           return (
             <Link key={group.label} href={href} className="card pattern-card">
