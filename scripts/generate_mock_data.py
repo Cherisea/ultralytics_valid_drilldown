@@ -212,10 +212,8 @@ def generate_image(run_id: str, idx: int, record: dict, public_img_dir: Path) ->
     img_path: Path = record["path"]
     filename = f"val_{idx:04d}.jpg"
     dest = public_img_dir / filename
- 
-    # Copy the real image into Next.js public directory
-    if not dest.exists():
-        shutil.copy2(img_path, dest)
+
+    shutil.copy2(img_path, dest)
  
     img_id    = str(uuid.uuid4())
     image_url = f"/images/{filename}"   # served by Next.js as a static asset
