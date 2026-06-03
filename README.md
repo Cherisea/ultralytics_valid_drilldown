@@ -167,7 +167,7 @@ Four substitutions, nothing else changes:
 
 **GT source** — `load_coco128_images()` is replaced by a query against your dataset registry or MongoDB annotations collection. The returned shape stays identical;
 
-**Predictions** — The `jitter_bbox` / `displace_bbox` simulation inside `generate_image_from_real()` is replaced by `model.predict()` calls (Layer 3). Layers 1 and 2 come from `model.val()` directly and slot into the existing `ValidationRun` and `ImageListItem` schemas without modification.
+**Predictions** — The `jitter_bbox` / `displace_bbox` simulation inside `generate_image()` is replaced by `model.predict()` calls (Layer 3). Layers 1 and 2 come from `model.val()` directly and slot into the existing `ValidationRun` and `ImageListItem` schemas without modification.
  
 **Storage** — The three `json.dumps(...)` calls in `main()` become `db.runs.insert_one(run)` and `db.images.insert_many(images)`. The `images_index.json` file is replaced by a MongoDB projection that excludes `predictions` and `groundTruths`.
  
@@ -176,7 +176,7 @@ Four substitutions, nothing else changes:
 
 ## What I'd build next
  
-**Real model inference.** The generator has a `build_from_real_model()` stub that shows the production path. Wiring it up — running `model.predict()` over the val split and matching predictions to GT labels using the existing `compute_iou()` function — is the single highest-value next step.
+**Real model inference.** The generator has a `build_from_real_model()` stub that shows the production path. Wiring it up — running `model.predict()` over the val split and matching predictions to GT labels using the existing `compute_iou()` function — is the most important next step.
  
 **Image-to-image navigation in the detail view.** The detail page currently has no prev/next controls. Adding them requires passing the ordered image IDs from the gallery into the detail URL, which is a small change to `ImageCard` and the detail page.
  

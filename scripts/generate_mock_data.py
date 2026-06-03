@@ -461,6 +461,128 @@ def compute_run_metrics(
  
     return agg, per_class, confusion
 
+# ====================================   Real-pipeline stub ====================================
+# This is what replaces generate_mock_data.py in production.
+# Not called by this script. Shown here so the gap between mock and real
+# is visible in the same file rather than buried in a README.
+
+
+def _write_fixtures(run_id, model_path, data_yaml, val_results, images, out_dir):
+    """Shared fixture-writing logic used by both mock and real pipelines."""
+    raise NotImplementedError("Wire up once _match_predictions_to_gt is implemented.")
+
+def _dominant_error(predictions: list, ground_truths: list) -> str | None:
+    counts: dict[str, int] = defaultdict(int)
+    for p in predictions:
+        if p.get("errorType"):
+            counts[p["errorType"]] += 1
+    for g in ground_truths:
+        if g.get("errorType"):
+            counts[g["errorType"]] += 1
+    return max(counts, key=counts.get) if counts else None
+
+def _match_predictions_to_gt(pred_boxes, gt_rows, class_names, filename):
+    """
+    Stub: perform IoU matching between predictions and ground truths.
+    Returns (ground_truths, predictions) in the ImageResult schema.
+    Replace with a proper Hungarian-algorithm or greedy-match implementation.
+    """
+    raise NotImplementedError(
+        "Implement IoU matching here. For each pred/GT pair: compute IoU, "
+        "assign error_type from {false_positive, false_negative, localization, "
+        "classification} based on IoU threshold and class agreement."
+    )
+
+def build_from_real_model(
+    model_path: str,
+    data_yaml: str,
+    out_dir: Path,
+) -> None:  # pragma: no cover
+    """
+    Build the same three fixture files using a real YOLO model.
+ 
+    Covers Layer 1 + 2 via model.val(), Layer 3 via model.predict()
+    + YOLO label loading + IoU matching.
+ 
+    Requirements:
+        pip install ultralytics
+        # model weights + dataset must be present on disk
+ 
+    Usage:
+        build_from_real_model("best.pt", "coco8.yaml", Path("data/fixtures"))
+    """
+    from ultralytics import YOLO  # type: ignore[import]
+ 
+    model = YOLO(model_path)
+ 
+    # ── Layer 1 + 2: aggregate metrics and per-image summary counts ───────────
+    val_results = model.val(data=data_yaml)
+ 
+    # results.box.image_metrics → per-image precision/recall/f1/tp/fp/fn
+    # {"val/img001.jpg": {"precision": 0.85, "recall": 0.92, "f1": 0.88,
+    #                     "tp": 17, "fp": 3, "fn": 1}, ...}
+    image_metrics: dict = val_results.box.image_metrics
+ 
+    # ── Layer 3: per-box detail via predict() + label loading ─────────────────
+    # image_metrics gives counts but no box coordinates or error types.
+    # We recover those here.
+ 
+    with open(data_yaml) as f:
+        cfg = yaml.safe_load(f)
+    val_img_dir = Path(cfg["path"]) / cfg["val"]
+    class_names: list[str] = list(cfg["names"].values()) if isinstance(cfg["names"], dict) else cfg["names"]
+ 
+    images_out: list[dict] = []
+    run_id = "run-" + str(uuid.uuid4())[:8]
+ 
+    for img_path in sorted(val_img_dir.glob("*.jpg")):
+        # Ground truth: YOLO .txt label alongside image
+        label_path = img_path.with_suffix(".txt").parent.parent / "labels" / "val" / img_path.with_suffix(".txt").name
+        gt_rows: list[list[float]] = []
+        if label_path.exists():
+            for line in label_path.read_text().splitlines():
+                parts = line.split()
+                gt_rows.append([int(parts[0])] + [float(v) for v in parts[1:]])
+ 
+        # Predictions
+        pred_results = model.predict(img_path, conf=0.001, verbose=False)
+        pred_boxes   = pred_results[0].boxes  # xyxyn, cls, conf
+ 
+        # IoU matching: assign each prediction to a GT (or none → FP)
+        # Each GT either matched (TP) or not (FN); see match_predictions() stub.
+        ground_truths, predictions = _match_predictions_to_gt(
+            pred_boxes, gt_rows, class_names, img_path.name,
+        )
+ 
+        # Per-image summary from image_metrics (authoritative counts)
+        img_key = str(img_path)
+        summary  = image_metrics.get(img_key, {})
+        tp  = summary.get("tp",  sum(1 for p in predictions if p["matched"]))
+        fp  = summary.get("fp",  sum(1 for p in predictions if not p["matched"]))
+        fn  = summary.get("fn",  sum(1 for g in ground_truths if not g["matched"]))
+        f1  = summary.get("f1",  0.0)
+ 
+        images_out.append({
+            "id":               str(uuid.uuid4()),
+            "runId":            run_id,
+            "filename":         img_path.name,
+            "imageUrl":         str(img_path),   # replace with CDN URL in production
+            "width":            pred_results[0].orig_shape[1],
+            "height":           pred_results[0].orig_shape[0],
+            "score":            round(f1, 4),
+            "truePositives":    tp,
+            "falsePositives":   fp,
+            "falseNegatives":   fn,
+            "dominantErrorType": _dominant_error(predictions, ground_truths),
+            "classesPresent":   sorted({g["className"] for g in ground_truths}),
+            "tags":             [],
+            "predictions":      predictions,
+            "groundTruths":     ground_truths,
+        })
+ 
+    # Build run summary from val_results (Layer 1)
+    _write_fixtures(run_id, model_path, data_yaml, val_results, images_out, out_dir)
+
 def main() -> None:
     out_dir = Path("data/")
     public_img_dir = Path("public/images")
