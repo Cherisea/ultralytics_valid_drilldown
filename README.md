@@ -94,6 +94,44 @@ The ground truth annotations are real. The predictions are not — they are gene
  
 **What the generator simulates:** `model.predict()` per image + IoU matching + error type classification. It does not simulate `model.val()` — aggregate metrics are derived from the simulated detections rather than from a real validation run.
 
+## Assumptions
+
+### Metrics
+**Per-image score is the Dice/F1 coefficient, not per-image mAP50.** Per-image mAP50 is not a standard metric — YOLO does not compute it. The score `2TP / (2TP + FP + FN)` is a single-threshold proxy that drives the worst-first sort and score bars. It is not directly comparable to the dataset-level mAP50 shown in the metric cards.
+
+**mAP50 is approximated as F1.** True mAP50 requires computing the area under the precision-recall curve across many confidence thresholds. Because the simulated predictions don't have a realistic confidence score distribution, computing a PR curve would be meaningless. F1 at the operating point is used as a proxy and will underestimate true mAP50 for classes where the model is confident on correct predictions.
+
+**mAP50-95 is approximated as `mAP50 × uniform(0.58, 0.68)`.** This reflects the typical empirical ratio between the two metrics on YOLO models. It is not computed from multi-threshold IoU evaluation.
+
+**The `duplicate` error type is defined in the schema but never generated.** Simulating NMS suppression to produce realistic duplicate detections would require running a full NMS pass over all predicted boxes, which is outside the scope of the per-object simulation. The type exists in `types/validation.ts` and `backend/models.py` for production completeness.
+
+### Filtering and gallery
+ 
+**The `class` filter matches ground truth classes, not predicted classes.** Filtering by `class=dog` shows images where a dog is annotated — not images where the model predicted a dog. An image where the model hallucinated a dog but no dog is annotated would not appear.
+
+**The `errorType` filter is presence-based.** An image qualifies if it has at least one prediction or GT with that error type, regardless of whether it is the dominant type. The badge shown on gallery cards still reflects the dominant error type (the plurality), which may differ from the filter applied.
+
+**The `confMin`/`confMax` filter operates on average prediction confidence per image.** It does not filter on individual detections. An image with one high-confidence correct detection and one low-confidence false positive would have a moderate average and appear in middle-confidence results even though it has both extremes.
+
+### Pattern discovery
+
+**Confidence buckets are fixed at three ranges.** High: avgConf ≥ 0.7. Medium: 0.4 ≤ avgConf < 0.7. Low: avgConf < 0.4. These are heuristic thresholds, not derived from the confidence distribution of the actual data.
+ 
+**Class pattern grouping uses multi-membership.** An image containing both bird and car appears in both the bird group and the car group. Group counts therefore sum to more than the total image count.
+
+**Representative images per pattern group are the three worst-scoring in that group.** Worst by per-image F1, not by any class-specific or error-specific metric.
+
+### Architecture and runtime
+ 
+**One run at a time.** The app is hardcoded to redirect to `run-coco8-001`. The API and store support multiple runs by design — the missing piece is a runs-list page. This was a deliberate scope cut for the prototype.
+ 
+**Fixture data is loaded once at server startup.** `lib/store.ts` uses module-level singletons. Regenerating fixture files on disk has no effect until the Next.js server is restarted. A console warning is printed on subsequent requests if the fixture mtime has advanced.
+
+**Route handlers run in Node.js, not the Edge runtime.** The `fs` module is used in `lib/store.ts` to read fixture files. Edge runtime does not support `fs`. This is not a constraint in production where the store reads from MongoDB instead.
+ 
+**`types/validation.ts` and `backend/models.py` are manually kept in sync.** There is no code generation from a shared schema. If a field is added to one, it must be added to the other. In a production team this would be replaced by generating both from a single OpenAPI or JSON Schema definition.
+
+
 ## API contract
  
 Four endpoints, all returning the same schema the frontend types describe:
