@@ -50,7 +50,7 @@ random.seed(SEED)
 # ── Config ─────────────────────────────────────────────────────────────────────
 MAX_IMAGES = 60      # cap for a manageable prototype dataset
 IOU_THRESHOLD = 0.50  # COCO standard: IoU ≥ 0.5 → true positive
-COCO_CLASS_IDS = {0, 1, 2, 3, 5, 7, 9, 11, 16, 17, 14}
+COCO_CLASS_IDS = {0, 1, 2, 3, 5, 7, 9, 11, 16, 15, 14}
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Map from COCO ID → our internal class definition
@@ -67,7 +67,7 @@ CLASSES: list[dict] = [
     {"id": 6,  "cocoId": 9,  "name": "traffic light", "base_recall": 0.55, "base_precision": 0.62, "confuses_with": [],      "small": True},
     {"id": 7,  "cocoId": 11, "name": "stop sign",     "base_recall": 0.61, "base_precision": 0.68, "confuses_with": [],      "small": False},
     {"id": 8,  "cocoId": 16, "name": "dog",           "base_recall": 0.76, "base_precision": 0.80, "confuses_with": [9],     "small": False},
-    {"id": 9,  "cocoId": 17, "name": "cat",           "base_recall": 0.73, "base_precision": 0.78, "confuses_with": [8],     "small": False},
+    {"id": 9,  "cocoId": 15, "name": "cat",           "base_recall": 0.73, "base_precision": 0.78, "confuses_with": [8],     "small": False},
     {"id": 10, "cocoId": 14, "name": "bird",          "base_recall": 0.39, "base_precision": 0.48, "confuses_with": [],      "small": True},
 ]
 N_CLASSES = len(CLASSES)
