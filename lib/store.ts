@@ -27,7 +27,10 @@ import type {
  * filtering and sorting purposes. The extra field is stripped before 
  * leaving the store script.
  */
-type IndexEntry = ImageListItem & { _avgConf: number };
+type IndexEntry = ImageListItem & { 
+  _avgConf: number;
+  _errorTypes: Set<string>;    // All error types present
+};
 
 // ---------------------------------------------------------------------------
 // Module-level singletons — loaded once, reused across requests
@@ -84,10 +87,18 @@ function load(): void {
         confs.length > 0
           ? confs.reduce((a, b) => a + b, 0) / confs.length
           : 0;
-   
+
+      const errorTypes = new Set<string>();
+      for (const p of img.predictions) {
+        if (p.errorType) errorTypes.add(p.errorType);
+      }
+      for (const g of img.groundTruths) {
+        if (g.errorType) errorTypes.add(g.errorType);
+      }
+       
       // Strip predictions and groundTruths — this is the ImageListItem shape
       const { predictions, groundTruths, ...listFields } = img;
-      return { ...listFields, _avgConf: avgConf };
+      return { ...listFields, _avgConf: avgConf, _errorTypes:errorTypes };
     });
    
     _entryById = new Map(_entries.map((e) => [e.id, e]));
@@ -98,7 +109,7 @@ function load(): void {
 // Private helpers
 // ---------------------------------------------------------------------------
 /** Remove the internal _avgConf field before returning to a caller. */
-function toListItem({ _avgConf, ...rest }: IndexEntry): ImageListItem {
+function toListItem({ _avgConf, _errorTypes, ...rest }: IndexEntry): ImageListItem {
     return rest;
 }
 
@@ -114,7 +125,7 @@ function applyFilters(entries: IndexEntry[], filters: ImageFilters): IndexEntry[
       // A future version could filter on *presence* of any matching error,
       // which would require loading the full predictions array.
       if (filters.errorType !== undefined) {
-        if (item.dominantErrorType !== filters.errorType) return false;
+        if (!item._errorTypes.has(filters.errorType)) return false;
       }
    
       // Confidence filters operate on the image's average prediction confidence.
