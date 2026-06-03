@@ -27,9 +27,36 @@ Every entry poinnt -- a confusion matrix cell, a per-class table row, a pattern 
 ## Dataset
 This demo leverages a subset of COCO128 dataset from Ultralytics. A total of 11 classes amomg all 80 are used to keep confusion matrix readable. Images that contain none of these classes are skipped.
 
-## Architecture Overview
-- **Frontend**: Next.js + TypeScript;
-- **Backend**: Python serverless endpoints
+---
+
+## Frontend Architecture
+
+```
+Browser
+  └── Pages (Next.js server components)
+        ├── app/runs/[runId]/page.tsx          Overview
+        ├── app/runs/[runId]/images/page.tsx   Gallery
+        ├── app/runs/[runId]/images/[id]/...   Detail
+        └── app/runs/[runId]/patterns/page.tsx Patterns
+              │
+              │  direct function call (no HTTP)
+              ▼
+        lib/store.ts                    Data logic — filter, sort, group
+              │
+              ▼
+        data/fixtures/*.json            COCO128 GT + simulated predictions
+ 
+  Three "use client" components are separated from pages as they can't contain calls import server-side modules:
+    ConfusionMatrix.tsx   — cell clicks navigate to filtered gallery
+    FilterBar.tsx         — dropdowns update URL via router.push()
+    BoxOverlay.tsx        — SVG box rendering with hover interaction
+ 
+  app/api/runs/[runId]/.../route.ts     — HTTP contract for external consumers
+```
+
+**URL is the filter state.** Filter changes are navigations, not React state updates. This means filtered views are shareable links, the browser back button works through the entire drilldown, and clicking a confusion matrix cell is identical to typing a filter — both just change the URL.
+
+---
 
 ## Product and UX decisions
 ### Frontend
