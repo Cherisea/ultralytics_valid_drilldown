@@ -14,10 +14,10 @@ This demo leverages a subset of COCO128 dataset from Ultralytics. A total of 11 
 
 ## Product and UX decisions
 ### Frontend
-- `app/api` defines the HTTP contract for external consumers and client components. All pages in `api/runs` are server components that directly fetch JSON data through `lib/store.ts` stored in local disk. This allows for one command launch, end-to-end type safety and separation of concerns without unnecessary maintenance burnden.
+- Scripts in `app/api` defines the HTTP contract for external consumers and client components. All pages in `api/runs` are server components that directly fetch JSON data through `lib/store.ts` stored in local disk. This allows for one-command launch, end-to-end type safety and separation of concerns without unnecessary maintenance burnden.
 
 ### Backend
-- The backend data models are kept for reference only to keep this project frontend focused. They can be readily implemented to be integrated into production backend system.
+- Backend data models are stored in `scripts/models.py` to mirror the same contract for frontend defined in `types/validation.ts` and are for reference only to keep this project frontend focused. In production, data is sent in JSON format over HTTP protocol. 
 
 ## Assumptions
 - Per-image evaluation results;
