@@ -27,8 +27,6 @@ Every entry poinnt -- a confusion matrix cell, a per-class table row, a pattern 
 ## Dataset
 This demo leverages a subset of COCO128 dataset from Ultralytics. A total of 11 classes amomg all 80 are used to keep confusion matrix readable. Images that contain none of these classes are skipped.
 
----
-
 ## Frontend Architecture
 
 ```
@@ -46,7 +44,7 @@ Browser
               ▼
         data/fixtures/*.json            COCO128 GT + simulated predictions
  
-  Three "use client" components are separated from pages as they can't contain calls import server-side modules:
+  Three "use client" components are separated from pages as they can't import server-side modules:
     ConfusionMatrix.tsx   — cell clicks navigate to filtered gallery
     FilterBar.tsx         — dropdowns update URL via router.push()
     BoxOverlay.tsx        — SVG box rendering with hover interaction
@@ -56,11 +54,11 @@ Browser
 
 **URL is the filter state.** Filter changes are navigations, not React state updates. This means filtered views are shareable links, the browser back button works through the entire drilldown, and clicking a confusion matrix cell is identical to typing a filter — both just change the URL.
 
----
 
 ## Product and UX decisions
 ### Frontend
-- Scripts in `app/api` defines the HTTP contract for external consumers and client components. All pages in `api/runs` are server components that directly fetch JSON data through `lib/store.ts` stored in local disk. This allows for one-command launch, end-to-end type safety and separation of concerns without unnecessary maintenance burnden.
+- **Server-side data retrieval**. Scripts in `app/api` defines the HTTP contract for external consumers and client components. All pages in `api/runs` are server components that directly fetch JSON data through `lib/store.ts` stored in local disk. This allows for one-command launch, end-to-end type safety and separation of concerns without unnecessary maintenance burnden.
+- **Worst-first default**. The gallery sorts by per-image F1 ascending. A reviewer opening the gallery immediately sees the most broken images, not a random sample. The sort is overridable. Note per-class table sorts by mAP50 ascending -- the class that the model struggles the most appeares at the top. The sorting critieria is not overridable.
 
 ### Backend
 - Backend data models are stored in `scripts/models.py` to mirror the same contract for frontend defined in `types/validation.ts` and are for reference only to keep this project frontend focused. In production, data is sent in JSON format over HTTP protocol. 
