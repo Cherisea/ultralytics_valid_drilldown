@@ -16,6 +16,13 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in a browser. This lands on an overview page of validation run.
 
+## The drilldown workflow
+
+The three pages form one continuous funnel:
+ 
+![Drilldown workflow](asset/drilldown_flow.png)
+Every entry poinnt -- a confusion matrix cell, a per-class table row, a pattern group card -- lands in the same filtered gallery.
+
 
 ## Dataset
 This demo leverages a subset of COCO128 dataset from Ultralytics. A total of 11 classes amomg all 80 are used to keep confusion matrix readable. Images that contain none of these classes are skipped.
