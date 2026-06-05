@@ -125,7 +125,7 @@ function applyFilters(entries: IndexEntry[], filters: ImageFilters): IndexEntry[
       // A future version could filter on *presence* of any matching error,
       // which would require loading the full predictions array.
       if (filters.errorType !== undefined) {
-        if (!item._errorTypes.has(filters.errorType)) return false;
+        if (item.dominantErrorType !== filters.errorType) return false;
       }
    
       // Confidence filters operate on the image's average prediction confidence.
@@ -233,7 +233,7 @@ function groupByErrorType(entries: IndexEntry[]): PatternGroup[] {
       [...buckets.entries()]
         .map(([label, items]) => buildGroup(label, 
                                   items, 
-                                  label !== "None" ? {errorType: label as ErrorType} : {}))
+                                  label !== "none" ? {errorType: label as ErrorType} : {}))
         .filter((g) => g.label !== "none")
         .sort((a, b) => b.count - a.count)
     );
