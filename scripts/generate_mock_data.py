@@ -197,11 +197,21 @@ def load_coco128_images(dataset_root: Path) -> list[dict]:
 
 def generate_image(run_id: str, idx: int, record: dict, public_img_dir: Path) -> dict[str, Any]:
     """
-        Build a full ImageResult for one real COCO128 image.
-    
-        Real GT boxes are read from the label file. Synthetic predictions are
-        generated on top of them using per-class difficulty profiles
+        Build a full ImageResult for every COCO128 image. Real GT boxes are read 
+        from the label file. Synthetic predictions are generated on top of them 
+        using per-class difficulty profiles.
+
+        Args:
+            run_id: an identifier of current evalution run
+            idx: index of current image file
+            record: a dict genrated by load_coco128_images()
+            public_image_dir: public dir for Next to serve images
+
+        Returns:
+            a full ImageResult objct.
+
         ──────────────────────────────
+        How predictions are simulated:
         1. Roll ≤ base_recall? → MISSED (false negative)
         2. Roll → one of:
         a. True positive       jitter_bbox, same class, IoU ≥ 0.5, high conf
