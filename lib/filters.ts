@@ -43,6 +43,12 @@ export function filtersFromParams(sp: RawParams): ImageFilters {
     : "worst";
 
   const rawErrorType = getStr(sp, "errorType");
+  const rawDominantErrorType = getStr(sp, "dominantErrorType");
+  const dominantErrorType: ErrorType | undefined =
+    rawDominantErrorType && VALID_ERROR_TYPES.has(rawDominantErrorType)
+      ? (rawDominantErrorType as ErrorType)
+      : undefined;
+
   const errorType: ErrorType | undefined =
     rawErrorType && VALID_ERROR_TYPES.has(rawErrorType)
       ? (rawErrorType as ErrorType)
@@ -56,6 +62,7 @@ export function filtersFromParams(sp: RawParams): ImageFilters {
 
   return {
     ...(rawClass   !== undefined && { class: rawClass }),
+    ...(dominantErrorType !== undefined && { dominantErrorType}),
     ...(errorType  !== undefined && { errorType }),
     ...(confMin    !== undefined && !isNaN(confMin) && { confMin }),
     ...(confMax    !== undefined && !isNaN(confMax) && { confMax }),
@@ -70,6 +77,7 @@ export function filtersToParams(filters: Partial<ImageFilters>): URLSearchParams
   const sp = new URLSearchParams();
   if (filters.class      !== undefined) sp.set("class",     filters.class);
   if (filters.errorType  !== undefined) sp.set("errorType", filters.errorType);
+  if (filters.dominantErrorType !== undefined) sp.set("dominantErrorType", filters.dominantErrorType);
   if (filters.confMin    !== undefined) sp.set("confMin",   String(filters.confMin));
   if (filters.confMax    !== undefined) sp.set("confMax",   String(filters.confMax));
   if (filters.sort                    ) sp.set("sort",      filters.sort);

@@ -120,14 +120,18 @@ function applyFilters(entries: IndexEntry[], filters: ImageFilters): IndexEntry[
         if (!item.classesPresent.includes(filters.class)) return false;
       }
    
-      // Error-type filter: the image's most common failure mode must match.
-      // Note: this uses dominantErrorType (the plurality error on the image).
-      // A future version could filter on *presence* of any matching error,
-      // which would require loading the full predictions array.
+      // Presence check - true if the image contains ANY matching error.
+      // used by confusion-matrix drilldown.
       if (filters.errorType !== undefined) {
-        if (item.dominantErrorType !== filters.errorType) return false;
+        if (!item._errorTypes.has(filters.errorType)) return false;
       }
    
+      // Strict check - true only if this is the dominant error.
+      // used by pattern-page drilldown.
+      if (filters.dominantErrorType !== undefined) {
+        if (item.dominantErrorType !== filters.dominantErrorType) return false;
+      }
+
       // Confidence filters operate on the image's average prediction confidence.
       if (filters.confMin !== undefined && item._avgConf < filters.confMin) {
         return false;
@@ -233,7 +237,7 @@ function groupByErrorType(entries: IndexEntry[]): PatternGroup[] {
       [...buckets.entries()]
         .map(([label, items]) => buildGroup(label, 
                                   items, 
-                                  label !== "none" ? {errorType: label as ErrorType} : {}))
+                                  label !== "none" ? {dominantErrorType: label as ErrorType} : {}))
         .filter((g) => g.label !== "none")
         .sort((a, b) => b.count - a.count)
     );
