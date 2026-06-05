@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ErrorBadge } from "@/components/ui/Badge";
 import { scoreColor } from "@/lib/colors";
-import type { ImageListItem } from "@/types/validation";
+import type { ImageListItem } from "@/types/index";
 
 interface Props {
   item: ImageListItem;

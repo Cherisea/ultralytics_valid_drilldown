@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { filtersFromParams, galleryUrl } from "@/lib/filters";
-import type { ErrorType, SortOrder } from "@/types/validation";
+import type { ErrorType, SortOrder } from "@/types/index";
 
 const ERROR_TYPES: Array<{ value: ErrorType; label: string }> = [
   { value: "false_positive",  label: "False Positive" },

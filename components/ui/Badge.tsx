@@ -1,5 +1,5 @@
 import { errorColor, errorLabel } from "@/lib/colors";
-import type { ErrorType } from "@/types/validation";
+import type { ErrorType } from "@/types/index";
 
 interface Props {
   errorType: ErrorType | null;

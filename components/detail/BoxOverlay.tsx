@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { errorColor, errorLabel } from "@/lib/colors";
-import type { Detection, GroundTruth, ImageResult } from "@/types/validation";
+import type { Detection, GroundTruth, ImageResult } from "@/types/index";
 
 interface Props {
   image: ImageResult;

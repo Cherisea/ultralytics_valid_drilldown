@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { galleryUrl } from "@/lib/filters";
-import type { ClassMetrics } from "@/types/validation";
+import type { ClassMetrics } from "@/types/index";
 
 interface Props {
   metrics: ClassMetrics[];
