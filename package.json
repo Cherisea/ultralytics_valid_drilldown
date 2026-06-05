@@ -11,7 +11,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "generate": "openapi-typescript schema/openapi.yaml -o types/api.ts && datamodel-codegen --input schema/openapi.yaml --input-file-type openapi --output backend/models.py --use-annotated"
+    "generate": "openapi-typescript schema/openapi.yaml -o types/api.ts && datamodel-codegen --input schema/openapi.yaml --input-file-type openapi --output scripts/models.py --use-annotated"
   },
   "repository": {
     "type": "git",
