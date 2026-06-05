@@ -130,7 +130,9 @@ def bbox_to_dict(box: list[float]) -> dict[str, float]:
 def download_coco128() -> Path:
     """
     Download COCO128 via Ultralytics and return the dataset root path.
-    COCO128 is ~6MB and contains 128 real images from COCO train 2017.
+
+    Returns:
+        root path of COCO128 dataset on local device.
     """
     datasets_root = PROJECT_ROOT / "dataset"
     coco128_yaml  = datasets_root / "coco128" / "coco128.yaml"
@@ -214,10 +216,10 @@ def generate_image(run_id: str, idx: int, record: dict, public_img_dir: Path) ->
         How predictions are simulated:
         1. Roll ≤ base_recall? → MISSED (false negative)
         2. Roll → one of:
-        a. True positive       jitter_bbox, same class, IoU ≥ 0.5, high conf
-        b. Localisation error  displace_bbox, same class, IoU < 0.5, med conf
-        c. Classification err  jitter_bbox, wrong class, IoU ≥ 0.5, med conf
-        3. Sprinkle spurious false positives (unrelated to any GT)
+            a. True positive       jitter_bbox, same class, IoU ≥ 0.5, high conf
+            b. Localisation error  displace_bbox, same class, IoU < 0.5, med conf
+            c. Classification err  jitter_bbox, wrong class, IoU ≥ 0.5, med conf
+            3. Sprinkle spurious false positives (unrelated to any GT)
     """
     img_path: Path = record["path"]
     filename = f"val_{idx:04d}.jpg"
