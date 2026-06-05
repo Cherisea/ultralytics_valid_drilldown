@@ -128,8 +128,6 @@ The ground truth annotations are real. The predictions are not — they are gene
 **Fixture data is loaded once at server startup.** `lib/store.ts` uses module-level singletons. Regenerating fixture files on disk has no effect until the Next.js server is restarted. A console warning is printed on subsequent requests if the fixture mtime has advanced.
 
 **Route handlers run in Node.js, not the Edge runtime.** The `fs` module is used in `lib/store.ts` to read fixture files. Edge runtime does not support `fs`. This is not a constraint in production where the store reads from MongoDB instead.
- 
-**`types/validation.ts` and `backend/models.py` are manually kept in sync.** There is no code generation from a shared schema. If a field is added to one, it must be added to the other. In a production team this would be replaced by generating both from a single OpenAPI or JSON Schema definition.
 
 
 ## API contract
