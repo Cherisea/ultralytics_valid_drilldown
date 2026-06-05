@@ -21,7 +21,7 @@
 */
 import { NextRequest, NextResponse } from "next/server";
 import { getRun, queryImages } from "@/lib/store";
-import type { ErrorType, SortOrder, ImageFilters, ImageListResponse } from "@/types/validation";
+import type { ErrorType, SortOrder, ImageFilters, ImageListResponse } from "@/types/index";
 
 const VALID_ERROR_TYPES = new Set<ErrorType>([
     "false_positive",

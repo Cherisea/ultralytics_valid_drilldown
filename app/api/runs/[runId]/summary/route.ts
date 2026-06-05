@@ -11,7 +11,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getRun } from "@/lib/store";
-import type { RunSummaryResponse } from "@/types/validation";
+import type { RunSummaryResponse } from "@/types/index";
 
 export async function GET(
     _request: NextRequest,

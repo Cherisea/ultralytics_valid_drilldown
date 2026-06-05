@@ -4,7 +4,7 @@
  * file is shared by both server and client components.
 */
 
-import type { ImageFilters, ErrorType, SortOrder } from "@/types/validation";
+import type { ImageFilters, ErrorType, SortOrder } from "@/types/index";
 
 const VALID_ERROR_TYPES = new Set<string>([
   "false_positive",

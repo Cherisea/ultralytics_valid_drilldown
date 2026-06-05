@@ -1,4 +1,3 @@
-// types/index.ts
 // Manually maintained adapter — re-exports generated types with clean names.
 // When adding a new schema to openapi.yaml, add one line here.
 

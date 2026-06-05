@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { errorColor } from "@/lib/colors";
 import { galleryUrl } from "@/lib/filters";
 import Link from "next/link";
-import type { PatternGroupBy } from "@/types/validation";
+import type { PatternGroupBy } from "@/types/index";
 
 const GROUP_BY_OPTIONS: Array<{ value: PatternGroupBy; label: string; desc: string }> = [
   { value: "errorType",  label: "By error type",   desc: "Group images by their most common failure mode" },

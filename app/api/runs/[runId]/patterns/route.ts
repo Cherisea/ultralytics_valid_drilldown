@@ -23,7 +23,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getRun, getPatterns } from "@/lib/store";
-import type { PatternGroupBy, PatternsResponse } from "@/types/validation";
+import type { PatternGroupBy, PatternsResponse } from "@/types/index";
  
 const VALID_GROUP_BY = new Set<PatternGroupBy>([
   "class",

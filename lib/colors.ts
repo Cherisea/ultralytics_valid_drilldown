@@ -5,7 +5,7 @@
  * 
  */
 
-import type { ErrorType } from "@/types/validation";
+import type { ErrorType } from "@/types/index";
 
 /** Maps each error type (and null = TP) to its semantic accent color. */
 export const ERROR_COLOR: Record<string, string> = {

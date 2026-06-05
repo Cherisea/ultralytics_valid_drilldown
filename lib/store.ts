@@ -19,7 +19,7 @@ import type {
     SortOrder, PatternGroup,
     ErrorType, ImageListResponse,
     PatternGroupBy, PatternsResponse
-} from "@/types/validation";
+} from "@/types/index";
 
 
 /**
