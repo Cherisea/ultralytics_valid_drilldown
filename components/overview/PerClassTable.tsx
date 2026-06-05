@@ -40,7 +40,10 @@ export function PerClassTable({ metrics, runId, sortBy }: Props) {
                 key={field}
                 style={
                   field === sortBy
-                    ? { color: "var(--t1)", fontWeight: 700, borderBottom: "2px solid var(--t1)" }
+                    ? {
+                        color: "var(--t1)",
+                        fontWeight: 700,
+                      }
                     : undefined
                 }
               >
