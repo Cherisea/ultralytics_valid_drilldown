@@ -358,8 +358,8 @@ def generate_image(run_id: str, idx: int, record: dict, public_img_dir: Path) ->
         if p["errorType"]:
             err_counts[p["errorType"]] += 1
     for g in ground_truths:
-        if g.get("errorType"):
-            err_counts[g["errorType"]] += 1
+        if g.get("errorType") == "false_negative":
+            err_counts["false_negative"] += 1
     dominant = max(err_counts, key=err_counts.get) if err_counts else None
  
     # ── Tags ──────────────────────────────────────────────────────────────────
