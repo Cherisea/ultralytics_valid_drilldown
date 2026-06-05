@@ -7,24 +7,46 @@ import type { ClassMetrics } from "@/types/validation";
 interface Props {
   metrics: ClassMetrics[];
   runId: string;
+  sortBy: string;
 }
 
-export function PerClassTable({ metrics, runId }: Props) {
+// Maps each table column label to the ClassMetrics field it represents.
+// Used to highlight the active sort column in the header.
+const COLUMN_FIELD: Record<string, string> = {
+  "mAP50":    "map50",
+  "mAP50-95": "map50_95",
+  "P":        "precision",
+  "R":        "recall",
+  "F1":       "f1",
+};
+
+export function PerClassTable({ metrics, runId, sortBy }: Props) {
   const router = useRouter();
 
-  // Sorted by mAP50 ascending — worst class first
-  const sorted = [...metrics].sort((a, b) => a.map50 - b.map50);
+  // Sorted ascending by the selected field — worst class first
+  const sorted = [...metrics].sort(
+    (a, b) => 
+      ((a as unknown as Record<string, number>)[sortBy] ?? a.map50) -
+      ((b as unknown as Record<string, number>)[sortBy] ?? b.map50)
+  );
 
   return (
     <table className="table">
       <thead>
         <tr>
           <th>Class</th>
-          <th>mAP50</th>
-          <th>mAP50-95</th>
-          <th>P</th>
-          <th>R</th>
-          <th>F1</th>
+            {Object.entries(COLUMN_FIELD).map(([label, field]) => (
+              <th
+                key={field}
+                style={
+                  field === sortBy
+                    ? { color: "var(--t1)", fontWeight: 700, borderBottom: "2px solid var(--t1)" }
+                    : undefined
+                }
+              >
+                {label}
+              </th>
+            ))}
           <th>TP</th>
           <th>FP</th>
           <th>FN</th>
@@ -69,11 +91,11 @@ export function PerClassTable({ metrics, runId }: Props) {
                   <div
                     style={{
                       height: "100%",
-                      width: `${cls.map50 * 100}%`,
+                      width: `${((cls as unknown as Record<string, number>)[sortBy] ?? cls.map50) * 100}%`, 
                       background:
-                        cls.map50 < 0.5
+                        ((cls as unknown as Record<string, number>)[sortBy] ?? cls.map50) < 0.5              
                           ? "var(--fp)"
-                          : cls.map50 < 0.7
+                          : ((cls as unknown as Record<string, number>)[sortBy] ?? cls.map50) < 0.7      
                           ? "var(--fn)"
                           : "var(--tp)",
                       borderRadius: 1,
