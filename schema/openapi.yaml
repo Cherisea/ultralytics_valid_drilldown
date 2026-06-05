@@ -47,6 +47,13 @@ paths:
           schema:
             $ref: "#/components/schemas/ErrorType"
           description: Filter by error type
+        - name: dominantErrorType
+          in: query
+          schema:
+            $ref: "#/components/schemas/ErrorType"
+          description: >
+            Strict filter - only images whose domiant error matches.
+            Distinct from errorType which checks for presence of an error.
         - name: confMin
           in: query
           schema:
@@ -539,6 +546,10 @@ components:
         class:
           type: string
         errorType:
+          $ref: "#/components/schemas/ErrorType"
+        dominantErrorType:
+          description: >
+            Strict filter - only images whose dominant error matches. Used by patterns-page.
           $ref: "#/components/schemas/ErrorType"
         confMin:
           type: number
