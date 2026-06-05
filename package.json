@@ -10,7 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "generate": "openapi-typescript schema/openapi.yaml -o types/api.ts && datamodel-codegen --input schema/openapi.yaml --input-file-type openapi --output backend/models.py --use-annotated"
   },
   "repository": {
     "type": "git",
@@ -32,6 +33,7 @@
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.3",
+    "openapi-typescript": "^7.13.0",
     "typescript": "^6.0.3"
   }
 }
