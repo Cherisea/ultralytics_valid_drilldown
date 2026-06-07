@@ -29,8 +29,8 @@ import type {
  */
 type IndexEntry = ImageListItem & { 
   _avgConf: number;
-  _errorTypes: Set<string>;    // All error types present
-  _classErrorTypes: Map<string, Set<string>>;   // className -> error types from GT class
+  _errorTypes: Set<string>;    // All error types present: both GT and predictions
+  _classErrorTypes: Map<string, Set<string>>;   // GT className -> error types from GT class
 };
 
 // ---------------------------------------------------------------------------
