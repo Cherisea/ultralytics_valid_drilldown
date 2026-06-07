@@ -42,6 +42,7 @@ export function FilterBar({ runId, classNames, total }: Props) {
   const hasFilters =
     filters.class !== undefined ||
     filters.errorType !== undefined ||
+    filters.dominantErrorType != undefined || 
     filters.confMin !== undefined ||
     filters.confMax !== undefined;
 
@@ -68,9 +69,9 @@ export function FilterBar({ runId, classNames, total }: Props) {
       <span className="filter-label">Error</span>
       <select
         className="filter-select"
-        value={filters.errorType ?? ""}
+        value={filters.errorType ?? filters.dominantErrorType ?? ""}
         onChange={(e) =>
-          navigate({ errorType: e.target.value || undefined })
+          navigate({ errorType: e.target.value || undefined, dominantErrorType: undefined })
         }
       >
         <option value="">All types</option>
