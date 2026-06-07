@@ -30,6 +30,7 @@ import type {
 type IndexEntry = ImageListItem & { 
   _avgConf: number;
   _errorTypes: Set<string>;    // All error types present
+  _classErrorTypes: Map<string, Set<string>>;   // className -> error types from GT class
 };
 
 // ---------------------------------------------------------------------------
@@ -95,10 +96,18 @@ function load(): void {
       for (const g of img.groundTruths) {
         if (g.errorType) errorTypes.add(g.errorType);
       }
-       
+
+      const classErrorTypes = new Map<string, Set<string>>();
+      for (const g of img.groundTruths) {
+        if (g.errorType) {
+          if (!classErrorTypes.has(g.className)) classErrorTypes.set(g.className, new Set());
+          classErrorTypes.get(g.className)?.add(g.errorType);
+        }
+      }
+
       // Strip predictions and groundTruths — this is the ImageListItem shape
       const { predictions, groundTruths, ...listFields } = img;
-      return { ...listFields, _avgConf: avgConf, _errorTypes:errorTypes };
+      return { ...listFields, _avgConf: avgConf, _errorTypes:errorTypes, _classErrorTypes: classErrorTypes };
     });
    
     _entryById = new Map(_entries.map((e) => [e.id, e]));
@@ -109,21 +118,25 @@ function load(): void {
 // Private helpers
 // ---------------------------------------------------------------------------
 /** Remove the internal _avgConf field before returning to a caller. */
-function toListItem({ _avgConf, _errorTypes, ...rest }: IndexEntry): ImageListItem {
+function toListItem({ _avgConf, _errorTypes, _classErrorTypes, ...rest }: IndexEntry): ImageListItem {
     return rest;
 }
 
 function applyFilters(entries: IndexEntry[], filters: ImageFilters): IndexEntry[] {
     return entries.filter((item) => {
-      // Class filter: at least one GT object in the image belongs to this class.
-      if (filters.class !== undefined) {
-        if (!item.classesPresent.includes(filters.class)) return false;
-      }
-   
-      // Presence check - true if the image contains ANY matching error.
-      // used by confusion-matrix drilldown.
-      if (filters.errorType !== undefined) {
-        if (!item._errorTypes.has(filters.errorType)) return false;
+      // When class + errorType arrive together (confusion matrix), they must
+      // co-occur on the same GT object — not just anywhere on the image.
+      // When either arrives alone, fall back to the independent image-level checks.
+      if (filters.class !== undefined && filters.errorType !== undefined) {
+        const errTypes = item._classErrorTypes.get(filters.class);
+        if (!errTypes?.has(filters.errorType)) return false;
+      } else {
+        if (filters.class !== undefined) {
+          if (!item.classesPresent.includes(filters.class)) return false;
+        }
+        if (filters.errorType !== undefined) {
+          if (!item._errorTypes.has(filters.errorType)) return false;
+        }
       }
    
       // Strict check - true only if this is the dominant error.
