@@ -102,8 +102,6 @@ The ground truth annotations are real. The predictions are not — they are gene
 
 **mAP50-95 is approximated as `mAP50 × uniform(0.58, 0.68)`.** This reflects the typical empirical ratio between the two metrics on YOLO models. It is not computed from multi-threshold IoU evaluation.
 
-**The `duplicate` error type is defined in the schema but never generated.** Simulating NMS suppression to produce realistic duplicate detections would require running a full NMS pass over all predicted boxes, which is outside the scope of the per-object simulation. The type exists in `types/validation.ts` and `backend/models.py` for production completeness.
-
 ### Filtering and gallery
  
 **The `class` filter matches ground truth classes, not predicted classes.** Filtering by `class=dog` shows images where a dog is annotated — not images where the model predicted a dog. An image where the model hallucinated a dog but no dog is annotated would not appear.
