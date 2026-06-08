@@ -21,7 +21,6 @@ Open [http://localhost:3000](http://localhost:3000) in a browser. This lands on 
 The three pages form one continuous funnel:
  
 ![Drilldown workflow](asset/drilldown_flow.png)
-Every entry poinnt -- a confusion matrix cell, a per-class table row, a pattern group card -- lands in the same filtered gallery.
 
 ## Frontend Architecture
 
