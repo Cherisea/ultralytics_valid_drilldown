@@ -71,7 +71,6 @@ Furthermore, all bounding boxes use normalised YOLO `[cx, cy, w, h]` format — 
 | `false_negative` | GT object with no matching prediction |
 | `localization` | Right class, IoU < 0.5 |
 | `classification` | Right location, wrong class |
-| `duplicate` | Redundant prediction suppressed by NMS |
  
 Each `Detection` and `GroundTruth` carries cross-reference IDs (`groundTruthId`, `matchedPredictionId`, `nearestPredictionId`) so the detail view can draw both layers and link them on hover without additional requests.
  
