@@ -9,7 +9,6 @@ const ERROR_TYPES: Array<{ value: ErrorType; label: string }> = [
   { value: "false_negative",  label: "False Negative" },
   { value: "localization",    label: "Localization" },
   { value: "classification",  label: "Classification" },
-  { value: "duplicate",       label: "Duplicate" },
 ];
 
 const SORT_ORDERS: Array<{ value: SortOrder; label: string }> = [
