@@ -104,7 +104,7 @@ The ground truth annotations are real. The predictions are not — they are gene
 
 ### Filtering and gallery
  
-**The `class` filter matches ground truth classes, not predicted classes.** Filtering by `class=dog` shows images where a dog is annotated — not images where the model predicted a dog. An image where the model hallucinated a dog but no dog is annotated would not appear.
+**The `class` filter in gallery view matches both ground truth classes and predicted classes.** Filtering by `class=dog` shows images where a dog is annotated when error type is set to a value other than "False positive"; whereas prediction objects are used when "False positive" error type is selected. 
 
 **The `errorType` filter is presence-based.** An image qualifies if it has at least one prediction or GT with that error type, regardless of whether it is the dominant type. The badge shown on gallery cards still reflects the dominant error type (the plurality), which may differ from the filter applied.
 
