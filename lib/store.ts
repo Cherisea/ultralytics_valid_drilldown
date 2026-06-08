@@ -31,6 +31,7 @@ type IndexEntry = ImageListItem & {
   _avgConf: number;
   _errorTypes: Set<string>;    // All error types present: both GT and predictions
   _classErrorTypes: Map<string, Set<string>>;   // GT className -> error types from GT class
+  _predClassErrorTypes: Map<string, Set<string>>;   // Predicted class -> error types
 };
 
 // ---------------------------------------------------------------------------
@@ -105,9 +106,19 @@ function load(): void {
         }
       }
 
+      const predClassErrorTypes = new Map<string, Set<string>>();
+      for (const p of img.predictions) {
+        if (p.errorType) {
+          if (!predClassErrorTypes.has(p.errorType)) 
+            predClassErrorTypes.set(p.className, new Set());
+          predClassErrorTypes.get(p.className)?.add(p.errorType);
+        }
+      }
+
       // Strip predictions and groundTruths — this is the ImageListItem shape
       const { predictions, groundTruths, ...listFields } = img;
-      return { ...listFields, _avgConf: avgConf, _errorTypes:errorTypes, _classErrorTypes: classErrorTypes };
+      return { ...listFields, _avgConf: avgConf, _errorTypes:errorTypes, 
+              _classErrorTypes: classErrorTypes, _predClassErrorTypes: predClassErrorTypes };
     });
    
     _entryById = new Map(_entries.map((e) => [e.id, e]));
@@ -118,7 +129,7 @@ function load(): void {
 // Private helpers
 // ---------------------------------------------------------------------------
 /** Remove the internal _avgConf field before returning to a caller. */
-function toListItem({ _avgConf, _errorTypes, _classErrorTypes, ...rest }: IndexEntry): ImageListItem {
+function toListItem({ _avgConf, _errorTypes, _classErrorTypes, _predClassErrorTypes, ...rest }: IndexEntry): ImageListItem {
     return rest;
 }
 
@@ -128,8 +139,11 @@ function applyFilters(entries: IndexEntry[], filters: ImageFilters): IndexEntry[
       // co-occur on the same GT object — not just anywhere on the image.
       // When either arrives alone, fall back to the independent image-level checks.
       if (filters.class !== undefined && filters.errorType !== undefined) {
-        const errTypes = item._classErrorTypes.get(filters.class);
-        if (!errTypes?.has(filters.errorType)) return false;
+        const isPredictError = filters.errorType === "false_positive" || 
+                                filters.errorType === "duplicate";
+        const map = isPredictError ? item._predClassErrorTypes : item._classErrorTypes;
+
+        if (!map.get(filters.class)?.has(filters.errorType)) return false;
       } else {
         if (filters.class !== undefined) {
           if (!item.classesPresent.includes(filters.class)) return false;
