@@ -145,7 +145,7 @@ GET /api/images/:imageId
     → ImageDetailResponse: full ImageResult with predictions and ground truths
 ```
  
-`types/validation.ts` (TypeScript) and `backend/models.py` (Pydantic v2) both describe this contract. In production, a FastAPI service would implement these endpoints with the same response shapes — the frontend would not change.
+`types/api.ts` (TypeScript) and `backend/models.py` (Pydantic v2) both describe this contract. In production, a FastAPI service would implement these endpoints with the same response shapes — the frontend would not change.
 
 ## What Ultralytics already provides vs what this prototype adds
 
