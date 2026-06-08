@@ -231,7 +231,7 @@ export interface components {
                 [key: string]: number;
             };
             /** @description Top 3 worst images in the group */
-            representativeImageIds: string[];
+            representativeImages: Array<{ id: string; imageUrl: string }>;
             /** @description Partial ImageFilters for deep-linking back to the gallery */
             galleryParams?: {
                 class?: string;

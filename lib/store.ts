@@ -207,7 +207,7 @@ function buildGroup(label: string,
         count: 0,
         avgScore: 0,
         errorBreakdown: {},
-        representativeImageIds: [],
+        representativeImages: [],
         galleryParams,
       };
     }
@@ -226,12 +226,12 @@ function buildGroup(label: string,
     }
    
     // Three worst-scoring images as entry points into the group
-    const representativeImageIds = [...items]
+    const representativeImages = [...items]
       .sort((a, b) => a.score - b.score)
       .slice(0, 3)
-      .map((i) => i.id);
+      .map((i) => ({ id: i.id, imageUrl: i.imageUrl }));
    
-    return { label, count: items.length, avgScore, errorBreakdown, representativeImageIds, galleryParams };
+    return { label, count: items.length, avgScore, errorBreakdown, representativeImages, galleryParams };
 }
 
 function groupByClass(entries: IndexEntry[]): PatternGroup[] {

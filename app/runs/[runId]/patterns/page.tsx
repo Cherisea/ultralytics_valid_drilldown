@@ -170,21 +170,16 @@ export default async function PatternsPage({
               )}
 
               {/* Representative thumbnails */}
-              {group.representativeImageIds.length > 0 && (
+              {group.representativeImages.length > 0 && (
                 <div className="pattern-thumbs">
-                  {group.representativeImageIds.map((imgId) => {
-                    // Build a placeholder thumbnail URL (picsum with seed from ID)
-                    // In production this would be a real thumbnail URL from the image record
-                    const seed = imgId.slice(0, 8);
-                    return (
-                      <img
-                        key={imgId}
-                        src={`https://picsum.photos/seed/coco${seed}/144/108`}
-                        alt=""
-                        className="pattern-thumb"
-                      />
-                    );
-                  })}
+                  {group.representativeImages.map(({ id, imageUrl }) => (
+                    <img
+                      key={id}
+                      src={imageUrl}
+                      alt=""
+                      className="pattern-thumb"
+                    />
+                  ))}
                 </div>
               )}
             </Link>
