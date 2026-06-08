@@ -163,13 +163,11 @@ components:
           false_negative  – GT with no matching prediction (missed object)
           localization    – Right class, IoU < 0.5 (detected but poorly framed)
           classification  – Right location, wrong class (confused label)
-          duplicate       – Redundant prediction suppressed by NMS
       enum:
         - false_positive
         - false_negative
         - localization
         - classification
-        - duplicate
 
     RunStatus:
       type: string

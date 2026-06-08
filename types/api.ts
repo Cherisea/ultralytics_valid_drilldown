@@ -82,10 +82,9 @@ export interface components {
          *       false_negative  – GT with no matching prediction (missed object)
          *       localization    – Right class, IoU < 0.5 (detected but poorly framed)
          *       classification  – Right location, wrong class (confused label)
-         *       duplicate       – Redundant prediction suppressed by NMS
          * @enum {string}
          */
-        ErrorType: "false_positive" | "false_negative" | "localization" | "classification" | "duplicate";
+        ErrorType: "false_positive" | "false_negative" | "localization" | "classification";
         /** @enum {string} */
         RunStatus: "complete" | "running" | "failed";
         /** @enum {string} */

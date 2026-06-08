@@ -139,8 +139,7 @@ function applyFilters(entries: IndexEntry[], filters: ImageFilters): IndexEntry[
       // co-occur on the same GT object — not just anywhere on the image.
       // When either arrives alone, fall back to the independent image-level checks.
       if (filters.class !== undefined && filters.errorType !== undefined) {
-        const isPredictError = filters.errorType === "false_positive" || 
-                                filters.errorType === "duplicate";
+        const isPredictError = filters.errorType === "false_positive";
         const map = isPredictError ? item._predClassErrorTypes : item._classErrorTypes;
 
         if (!map.get(filters.class)?.has(filters.errorType)) return false;
